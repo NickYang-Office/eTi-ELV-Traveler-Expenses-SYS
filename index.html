@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>廢車組人員差旅費用試算系統</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- SheetJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #f3f4f6; }
         .card { background: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); padding: 1.5rem; margin-bottom: 1.5rem; }
@@ -18,6 +23,8 @@
         .btn-primary:hover { background-color: #2563eb; }
         .btn-success { background-color: #10b981; color: white; }
         .btn-success:hover { background-color: #059669; }
+        .btn-warning { background-color: #f59e0b; color: white; }
+        .btn-warning:hover { background-color: #d97706; }
         .btn-danger { background-color: #ef4444; color: white; }
         .btn-danger:hover { background-color: #dc2626; }
         .btn-outline { background-color: transparent; border: 1px solid #d1d5db; color: #4b5563; }
@@ -35,14 +42,13 @@
         .app-row { transition: background-color 0.2s; }
         .app-row:hover { background-color: #f9fafb; }
         
-        /* Custom Select Style for cleaner table */
         .cost-select {
             background-color: #fff;
             border: 1px solid #d1d5db;
             color: #374151;
             font-size: 0.85rem;
             border-radius: 0.25rem;
-            padding: 0.25rem 1.5rem 0.25rem 0.5rem; /* Extra right padding for arrow */
+            padding: 0.25rem 1.5rem 0.25rem 0.5rem;
             outline: none;
             width: 100%;
             min-width: 130px;
@@ -60,25 +66,47 @@
 
 <div class="max-w-5xl mx-auto p-4">
     <!-- Header -->
-    <div class="mb-6 text-center">
-        <h1 class="text-2xl font-bold text-gray-800"><i class="fas fa-calculator text-blue-500 mr-2"></i>廢車組人員差旅費用試算系統(ver 0.1)</h1>
-        <p class="text-gray-500 text-sm mt-1">智慧行程費用估算</p>
+    <div class="mb-4 text-center">
+        <h1 class="text-2xl font-bold text-gray-800"><i class="fas fa-calculator text-blue-500 mr-2"></i>廢車組人員差旅費用試算系統(ver 0.2)</h1>
+        <p class="text-gray-500 text-sm mt-1">智慧行程費用估算・支援 Excel 匯入</p>
+        <div id="systemStatus" class="mt-2 text-xs font-bold text-gray-400">
+            <i class="fas fa-spinner fa-spin mr-1"></i> 正在載入 Excel 元件...
+        </div>
+    </div>
+
+    <!-- Data Import/Export Card -->
+    <div class="card border-l-4 border-green-500 relative">
+        <h2 class="text-lg font-bold mb-4 text-gray-700">批次匯入行程</h2>
+        <div class="flex flex-col md:flex-row gap-4 items-center">
+            <button onclick="downloadTemplate()" class="btn btn-outline text-sm">
+                <i class="fas fa-file-download mr-2"></i> 下載 Excel 範本
+            </button>
+            
+            <div class="relative overflow-hidden inline-block group">
+                <button class="btn btn-success text-sm w-full md:w-auto">
+                    <i class="fas fa-file-excel mr-2"></i> 選擇檔案匯入
+                </button>
+                <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" 
+                       class="absolute left-0 top-0 opacity-0 w-full h-full cursor-pointer z-10" 
+                       onclick="this.value = null;" 
+                       onchange="importExcel(this)">
+            </div>
+            <span class="text-xs text-gray-500 ml-2">支援：.xlsx, .xls, .csv</span>
+        </div>
+        <div id="importMsg" class="text-sm mt-2 font-bold h-5"></div>
     </div>
 
     <!-- Global Settings Card -->
     <div class="card border-l-4 border-blue-500">
         <h2 class="text-lg font-bold mb-4 text-gray-700">1. 基本設定 (全行程適用)</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Applicants Section -->
             <div class="col-span-1 md:col-span-2 bg-blue-50 p-4 rounded-lg border border-blue-100">
                 <label class="input-label mb-2">申請人名單</label>
                 <div class="flex gap-2 mb-2">
                     <input type="text" id="newApplicantInput" class="input-field" placeholder="輸入姓名後按新增" onkeypress="handleEnter(event)">
                     <button onclick="addApplicant()" class="btn btn-primary whitespace-nowrap">新增</button>
                 </div>
-                <div id="applicantList" class="flex flex-wrap">
-                    <!-- Tags will appear here -->
-                </div>
+                <div id="applicantList" class="flex flex-wrap"></div>
             </div>
 
             <div class="input-group">
@@ -97,14 +125,12 @@
     </div>
 
     <!-- Days Container -->
-    <div id="daysContainer" class="space-y-6">
-        <!-- Day Cards will be injected here -->
-    </div>
+    <div id="daysContainer" class="space-y-6"></div>
 
     <!-- Add Day Button -->
     <div class="mt-6 text-center">
-        <button onclick="addDay()" class="btn btn-success text-lg px-6 py-3 shadow-lg transform hover:scale-105 transition-transform">
-            <i class="fas fa-calendar-plus mr-2"></i> 新增日期
+        <button onclick="addDay()" class="btn btn-primary text-lg px-6 py-3 shadow-lg transform hover:scale-105 transition-transform">
+            <i class="fas fa-calendar-plus mr-2"></i> 新增空白日期
         </button>
     </div>
 
@@ -120,15 +146,12 @@
                     <th class="p-3 text-right">應申報總額</th>
                 </tr>
             </thead>
-            <tbody id="summaryTableBody">
-                <!-- Rows populated by JS -->
-            </tbody>
+            <tbody id="summaryTableBody"></tbody>
         </table>
     </div>
 
 </div>
 
-<!-- Grand Total Bar -->
 <div class="grand-total-bar flex justify-between items-center">
     <div>
         <div class="text-sm opacity-80">本次申請總支出</div>
@@ -137,132 +160,49 @@
     <div class="text-3xl font-bold" id="grandTotalDisplay">$0</div>
 </div>
 
-<!-- Vendor Data Template (Hidden) -->
-<datalist id="vendorOptions">
-    <!-- Populated by JS -->
-</datalist>
+<datalist id="vendorOptions"></datalist>
 
 <script>
     // --- 1. DATA DATABASE ---
     const vendorsDB = [
-        {"name": "岏宬", "city": "宜蘭", "cost": 1300}, 
-        {"name": "宏泰", "city": "宜蘭", "cost": 1300}, 
-        {"name": "源益", "city": "宜蘭", "cost": 1300}, 
-        {"name": "信捷", "city": "宜蘭", "cost": 1300}, 
-        {"name": "銓鈐", "city": "基隆", "cost": 650}, 
-        {"name": "萬新", "city": "基隆", "cost": 650}, 
-        {"name": "順瀚七堵", "city": "基隆", "cost": 650}, 
-        {"name": "原裕", "city": "台北", "cost": 250}, 
-        {"name": "環泰", "city": "台北", "cost": 250}, 
-        {"name": "正泰", "city": "台北", "cost": 250}, 
-        {"name": "印北", "city": "台北", "cost": 250}, 
-        {"name": "仲亮", "city": "新北", "cost": 300}, 
-        {"name": "建新", "city": "新北", "cost": 300}, 
-        {"name": "泳裕", "city": "新北", "cost": 300}, 
-        {"name": "華春", "city": "新北", "cost": 300}, 
-        {"name": "發輝", "city": "新北", "cost": 300}, 
-        {"name": "穗成", "city": "新北", "cost": 300}, 
-        {"name": "上元", "city": "新北", "cost": 300}, 
-        {"name": "阿米哥", "city": "新北", "cost": 300}, 
-        {"name": "盛祿", "city": "新北", "cost": 300}, 
-        {"name": "金協連", "city": "新北", "cost": 300}, 
-        {"name": "崇祐", "city": "新北", "cost": 300}, 
-        {"name": "萬益", "city": "新北", "cost": 300}, 
-        {"name": "大輝", "city": "新北", "cost": 300}, 
-        {"name": "天機", "city": "新北", "cost": 300}, 
-        {"name": "炬田", "city": "新北", "cost": 300}, 
-        {"name": "金協億", "city": "新北", "cost": 300}, 
-        {"name": "合全", "city": "新北", "cost": 300}, 
-        {"name": "釧合", "city": "新北", "cost": 300}, 
-        {"name": "俊陽伸", "city": "新北", "cost": 300}, 
-        {"name": "家泰", "city": "桃園", "cost": 650}, 
-        {"name": "新公鋼鐵", "city": "桃園", "cost": 650}, 
-        {"name": "三億", "city": "桃園", "cost": 650}, 
-        {"name": "大同", "city": "桃園", "cost": 650}, 
-        {"name": "富源", "city": "桃園", "cost": 650}, 
-        {"name": "展欣", "city": "桃園", "cost": 650}, 
-        {"name": "達祐", "city": "桃園", "cost": 650}, 
-        {"name": "裕清", "city": "桃園", "cost": 650}, 
-        {"name": "昊駿", "city": "桃園", "cost": 650}, 
-        {"name": "生光", "city": "桃園", "cost": 650}, 
-        {"name": "瑞明", "city": "桃園觀音大園", "cost": 900}, 
-        {"name": "北區實業", "city": "桃園", "cost": 650}, 
-        {"name": "鑫茂", "city": "桃園", "cost": 650}, 
-        {"name": "順發", "city": "桃園", "cost": 650}, 
-        {"name": "新公環境", "city": "桃園", "cost": 650}, 
-        {"name": "鴻岳", "city": "桃園觀音大園", "cost": 900}, 
-        {"name": "力群", "city": "桃園觀音大園", "cost": 900}, 
-        {"name": "灃利", "city": "桃園觀音大園", "cost": 900}, 
-        {"name": "佑運", "city": "桃園", "cost": 650}, 
-        {"name": "三權", "city": "桃園", "cost": 650}, 
-        {"name": "長興", "city": "新竹", "cost": 1100}, 
-        {"name": "宏田", "city": "新竹", "cost": 1100}, 
-        {"name": "泰夌", "city": "新竹", "cost": 1100}, 
-        {"name": "和昌", "city": "新竹", "cost": 1100}, 
-        {"name": "旺亨", "city": "新竹", "cost": 1100}, 
-        {"name": "植元", "city": "新竹", "cost": 1100}, 
-        {"name": "聯華", "city": "新竹", "cost": 1100}, 
-        {"name": "黃金城", "city": "苗栗", "cost": 950}, 
-        {"name": "國軒", "city": "苗栗", "cost": 950}, 
-        {"name": "金進", "city": "苗栗", "cost": 950}, 
-        {"name": "禾盛", "city": "苗栗", "cost": 950}, 
-        {"name": "佑順環保", "city": "苗栗", "cost": 950}, 
-        {"name": "得意行", "city": "苗栗", "cost": 950}, 
-        {"name": "佑順汽車", "city": "苗栗", "cost": 950}, 
-        {"name": "中華行", "city": "台中", "cost": 350}, 
-        {"name": "強鏡", "city": "台中", "cost": 350}, 
-        {"name": "台一", "city": "台中", "cost": 350}, 
-        {"name": "欣潔", "city": "台中", "cost": 350}, 
-        {"name": "全一", "city": "台中", "cost": 350}, 
-        {"name": "大安中古", "city": "台中大安", "cost": 600}, 
-        {"name": "中鐵", "city": "台中", "cost": 350}, 
-        {"name": "暐凱", "city": "台中太平", "cost": 400}, 
-        {"name": "展誠", "city": "台中", "cost": 350}, 
-        {"name": "益杰", "city": "台中", "cost": 350}, 
-        {"name": "百福", "city": "台中", "cost": 350}, 
-        {"name": "高宏", "city": "台中", "cost": 350}, 
-        {"name": "宜信", "city": "台中太平", "cost": 400}, 
-        {"name": "鑫永興", "city": "台中", "cost": 350}, 
-        {"name": "高達", "city": "台中", "cost": 350}, 
-        {"name": "鼎集", "city": "台中", "cost": 350}, 
-        {"name": "豐盛", "city": "台中", "cost": 350}, 
-        {"name": "偉豪", "city": "台中", "cost": 350}, 
-        {"name": "嘉錩", "city": "台中", "cost": 350}, 
-        {"name": "同宸", "city": "台中", "cost": 350}, 
-        {"name": "大里金屬", "city": "台中", "cost": 350}, 
-        {"name": "回玻", "city": "台中", "cost": 350}, 
-        {"name": "祥悅", "city": "台中", "cost": 350}, 
-        {"name": "翌鋐", "city": "台中", "cost": 350}, 
-        {"name": "經智鴻", "city": "台中", "cost": 350}, 
-        {"name": "星中", "city": "台中太平", "cost": 400}, 
-        {"name": "和泰", "city": "台中", "cost": 350}, 
-        {"name": "高盟", "city": "南投", "cost": 750}, 
-        {"name": "南投環保", "city": "南投", "cost": 750}, 
-        {"name": "信雄", "city": "南投竹山", "cost": 950}, 
-        {"name": "洪佳", "city": "南投", "cost": 750},
-        {"name": "追蹤查核-宜蘭", "city": "宜蘭", "cost": 1300},
-        {"name": "追蹤查核-基隆", "city": "基隆", "cost": 650},
-        {"name": "追蹤查核-台北", "city": "台北", "cost": 250},
-        {"name": "追蹤查核-新北", "city": "新北", "cost": 300},
-        {"name": "追蹤查核-桃園", "city": "桃園", "cost": 650},
-        {"name": "追蹤查核-桃園觀音大園", "city": "桃園觀音大園", "cost": 900},
-        {"name": "追蹤查核-新竹", "city": "新竹", "cost": 1100},
-        {"name": "追蹤查核-苗栗", "city": "苗栗", "cost": 950},
-        {"name": "追蹤查核-台中", "city": "台中", "cost": 350},
-        {"name": "追蹤查核-台中大安", "city": "台中大安", "cost": 600},
-        {"name": "追蹤查核-台中太平", "city": "台中太平", "cost": 400},
-        {"name": "追蹤查核-南投", "city": "南投", "cost": 750},
-        {"name": "追蹤查核-南投竹山", "city": "南投竹山", "cost": 950},
-        {"name": "追蹤查核-彰化", "city": "彰化", "cost": 600}
+        {"name": "岏宬", "city": "宜蘭", "cost": 1300}, {"name": "宏泰", "city": "宜蘭", "cost": 1300}, {"name": "源益", "city": "宜蘭", "cost": 1300}, {"name": "信捷", "city": "宜蘭", "cost": 1300}, 
+        {"name": "銓鈐", "city": "基隆", "cost": 650}, {"name": "萬新", "city": "基隆", "cost": 650}, {"name": "順瀚七堵", "city": "基隆", "cost": 650}, 
+        {"name": "原裕", "city": "台北", "cost": 250}, {"name": "環泰", "city": "台北", "cost": 250}, {"name": "正泰", "city": "台北", "cost": 250}, {"name": "印北", "city": "台北", "cost": 250}, 
+        {"name": "仲亮", "city": "新北", "cost": 300}, {"name": "建新", "city": "新北", "cost": 300}, {"name": "泳裕", "city": "新北", "cost": 300}, {"name": "華春", "city": "新北", "cost": 300}, 
+        {"name": "發輝", "city": "新北", "cost": 300}, {"name": "穗成", "city": "新北", "cost": 300}, {"name": "上元", "city": "新北", "cost": 300}, {"name": "阿米哥", "city": "新北", "cost": 300}, 
+        {"name": "盛祿", "city": "新北", "cost": 300}, {"name": "金協連", "city": "新北", "cost": 300}, {"name": "崇祐", "city": "新北", "cost": 300}, {"name": "萬益", "city": "新北", "cost": 300}, 
+        {"name": "大輝", "city": "新北", "cost": 300}, {"name": "天機", "city": "新北", "cost": 300}, {"name": "炬田", "city": "新北", "cost": 300}, {"name": "金協億", "city": "新北", "cost": 300}, 
+        {"name": "合全", "city": "新北", "cost": 300}, {"name": "釧合", "city": "新北", "cost": 300}, {"name": "俊陽伸", "city": "新北", "cost": 300}, 
+        {"name": "家泰", "city": "桃園", "cost": 650}, {"name": "新公鋼鐵", "city": "桃園", "cost": 650}, {"name": "三億", "city": "桃園", "cost": 650}, {"name": "大同", "city": "桃園", "cost": 650}, 
+        {"name": "富源", "city": "桃園", "cost": 650}, {"name": "展欣", "city": "桃園", "cost": 650}, {"name": "達祐", "city": "桃園", "cost": 650}, {"name": "裕清", "city": "桃園", "cost": 650}, 
+        {"name": "昊駿", "city": "桃園", "cost": 650}, {"name": "生光", "city": "桃園", "cost": 650}, {"name": "瑞明", "city": "桃園觀音大園", "cost": 900}, {"name": "北區", "city": "桃園", "cost": 650}, 
+        {"name": "鑫茂", "city": "桃園", "cost": 650}, {"name": "順發", "city": "桃園", "cost": 650}, {"name": "新公環境", "city": "桃園", "cost": 650}, {"name": "鴻岳", "city": "桃園觀音大園", "cost": 900}, 
+        {"name": "力群", "city": "桃園觀音大園", "cost": 900}, {"name": "灃利", "city": "桃園觀音大園", "cost": 900}, {"name": "佑運", "city": "桃園", "cost": 650}, {"name": "三權", "city": "桃園", "cost": 650}, 
+        {"name": "長興", "city": "新竹", "cost": 1100}, {"name": "宏田", "city": "新竹", "cost": 1100}, {"name": "泰夌", "city": "新竹", "cost": 1100}, {"name": "和昌", "city": "新竹", "cost": 1100}, 
+        {"name": "旺亨", "city": "新竹", "cost": 1100}, {"name": "植元", "city": "新竹", "cost": 1100}, {"name": "聯華", "city": "新竹", "cost": 1100}, 
+        {"name": "黃金城", "city": "苗栗", "cost": 950}, {"name": "國軒", "city": "苗栗", "cost": 950}, {"name": "金進", "city": "苗栗", "cost": 950}, {"name": "禾盛", "city": "苗栗", "cost": 950}, 
+        {"name": "佑順環保", "city": "苗栗", "cost": 950}, {"name": "得意", "city": "苗栗", "cost": 950}, {"name": "佑順汽車", "city": "苗栗", "cost": 950}, 
+        {"name": "中華行", "city": "台中", "cost": 350}, {"name": "強鏡", "city": "台中", "cost": 350}, {"name": "台一", "city": "台中", "cost": 350}, {"name": "欣潔", "city": "台中", "cost": 350}, 
+        {"name": "全一", "city": "台中", "cost": 350}, {"name": "大安中古", "city": "台中大安", "cost": 600}, {"name": "中鐵", "city": "台中", "cost": 350}, {"name": "暐凱", "city": "台中太平", "cost": 400}, 
+        {"name": "展誠", "city": "台中", "cost": 350}, {"name": "益杰", "city": "台中", "cost": 350}, {"name": "百福", "city": "台中", "cost": 350}, {"name": "高宏", "city": "台中", "cost": 350}, 
+        {"name": "宜信", "city": "台中太平", "cost": 400}, {"name": "鑫永興", "city": "台中", "cost": 350}, {"name": "高達", "city": "台中", "cost": 350}, {"name": "鼎集", "city": "台中", "cost": 350}, 
+        {"name": "豐盛", "city": "台中", "cost": 350}, {"name": "偉豪", "city": "台中", "cost": 350}, {"name": "嘉錩", "city": "台中", "cost": 350}, {"name": "同宸", "city": "台中", "cost": 350}, 
+        {"name": "大里", "city": "台中", "cost": 350}, {"name": "回玻", "city": "台中", "cost": 350}, {"name": "祥悅", "city": "台中", "cost": 350}, {"name": "翌鋐", "city": "台中", "cost": 350}, 
+        {"name": "經智鴻", "city": "台中", "cost": 350}, {"name": "星中", "city": "台中太平", "cost": 400}, {"name": "和泰", "city": "台中", "cost": 350}, 
+        {"name": "高盟", "city": "南投", "cost": 750}, {"name": "南投環保", "city": "南投", "cost": 750}, {"name": "信雄", "city": "南投竹山", "cost": 950}, {"name": "洪佳", "city": "南投", "cost": 750},
+        {"name": "追蹤查核-宜蘭", "city": "宜蘭", "cost": 1300}, {"name": "追蹤查核-基隆", "city": "基隆", "cost": 650}, {"name": "追蹤查核-台北", "city": "台北", "cost": 250}, 
+        {"name": "追蹤查核-新北", "city": "新北", "cost": 300}, {"name": "追蹤查核-桃園", "city": "桃園", "cost": 650}, {"name": "追蹤查核-桃園觀音大園", "city": "桃園觀音大園", "cost": 900}, 
+        {"name": "追蹤查核-新竹", "city": "新竹", "cost": 1100}, {"name": "追蹤查核-苗栗", "city": "苗栗", "cost": 950}, {"name": "追蹤查核-台中", "city": "台中", "cost": 350}, 
+        {"name": "追蹤查核-台中大安", "city": "台中大安", "cost": 600}, {"name": "追蹤查核-台中太平", "city": "台中太平", "cost": 400}, 
+        {"name": "追蹤查核-南投", "city": "南投", "cost": 750}, {"name": "追蹤查核-南投竹山", "city": "南投竹山", "cost": 950}, {"name": "追蹤查核-彰化", "city": "彰化", "cost": 600}
     ];
 
-    // Exclusion Groups
     const exclusionGroups = [["信捷", "宏泰", "岏宬"], ["阿米哥", "上元", "萬新"], ["正泰", "環泰"], ["建新", "大輝"], ["發輝", "炬田", "金協億", "金協連", "俊陽伸"], ["泳裕", "仲亮", "合全", "萬益", "崇祐"], ["永吉", "三權", "瑞明"], ["鴻岳", "力群", "順發"], ["天機", "盛祿"], ["新公環境", "新公鋼鐵"], ["和昌", "宏田"], ["回玻", "信全"], ["強鏡", "益杰", "高達"], ["大里", "展誠"], ["佑順環保", "禾盛"], ["佑運", "鑫茂"]];
 
     let applicants = [];
 
-    // --- 2. INITIALIZATION ---
     window.onload = function() {
+        checkXLSX();
         const dataList = document.getElementById('vendorOptions');
         vendorsDB.sort((a,b) => a.name.localeCompare(b.name, 'zh-Hant'));
         vendorsDB.forEach(v => {
@@ -271,40 +211,228 @@
             option.label = `${v.city} ($${v.cost})`;
             dataList.appendChild(option);
         });
-
-        // Add default applicant
         addApplicant("申請人1");
-
-        // Add first day by default
         addDay();
     };
+    
+    function checkXLSX() {
+        const statusEl = document.getElementById('systemStatus');
+        setTimeout(() => {
+            if (typeof XLSX !== 'undefined') {
+                statusEl.innerHTML = '<span class="text-green-500"><i class="fas fa-check-circle"></i> 系統就緒 (Excel 元件已載入)</span>';
+            } else {
+                statusEl.innerHTML = '<span class="text-red-500"><i class="fas fa-exclamation-triangle"></i> 警告：Excel 元件載入失敗，匯入功能將無法使用。請檢查網路。</span>';
+            }
+        }, 1000);
+    }
+
+    // --- IMPORT LOGIC ---
+    function downloadTemplate() {
+        if (typeof XLSX === 'undefined') { alert("錯誤：Excel 元件未載入"); return; }
+        const wb = XLSX.utils.book_new();
+        
+        // Sheet 1: Template
+        const headers = [["日期", "廠商", "申請人 (選填)"]];
+        const data = [["2023/10/27", "鴻岳", "王小明"], ["2023/10/27", "瑞明", "李大華"], ["2023/10/28", "中華行", ""]];
+        const ws = XLSX.utils.aoa_to_sheet(headers.concat(data));
+        ws['!cols'] = [{wch: 15}, {wch: 20}, {wch: 15}];
+        XLSX.utils.book_append_sheet(wb, ws, "行程範本");
+
+        // Sheet 2: Vendor List (Updated Sort & Layout)
+        // 1. Sort by City, then Name
+        const sortedVendors = [...vendorsDB].sort((a, b) => {
+            if (a.city !== b.city) {
+                return a.city.localeCompare(b.city, 'zh-Hant');
+            }
+            return a.name.localeCompare(b.name, 'zh-Hant');
+        });
+
+        // 2. Create Data Array
+        const vendorList = [["城市", "廠商名稱"]].concat(sortedVendors.map(v => [v.city, v.name]));
+        
+        const ws_vendors = XLSX.utils.aoa_to_sheet(vendorList);
+        ws_vendors['!cols'] = [{wch: 15}, {wch: 30}];
+        XLSX.utils.book_append_sheet(wb, ws_vendors, "廠商參考清單");
+
+        XLSX.writeFile(wb, "差旅費行程範本.xlsx");
+    }
+
+    function importExcel(input) {
+        const msgEl = document.getElementById('importMsg');
+        const file = input.files[0];
+        if (!file) return;
+
+        // Reset Status
+        msgEl.innerText = "準備讀取...";
+        msgEl.className = "text-sm mt-2 font-bold h-5 text-blue-500";
+
+        if (typeof XLSX === 'undefined') {
+            msgEl.innerText = "元件未載入";
+            msgEl.className = "text-sm mt-2 font-bold h-5 text-red-500";
+            alert("錯誤：Excel 核心元件未載入，請檢查網路。");
+            input.value = "";
+            return;
+        }
+
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            msgEl.innerText = "解析檔案中...";
+            
+            // Timeout to prevent UI lockup
+            setTimeout(() => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array', cellDates: true});
+                    
+                    if (!workbook.SheetNames.length) throw new Error("無工作表");
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    if (json.length < 2) throw new Error("無有效資料列");
+
+                    msgEl.innerText = "建立行程中...";
+                    
+                    setTimeout(() => {
+                        processImportData(json);
+                        msgEl.innerText = "匯入完成";
+                        msgEl.className = "text-sm mt-2 font-bold h-5 text-green-500";
+                        setTimeout(() => { msgEl.innerText = ""; }, 3000);
+                        input.value = "";
+                    }, 50);
+
+                } catch (err) {
+                    console.error(err);
+                    alert("檔案解析失敗：" + err.message);
+                    msgEl.innerText = "解析失敗";
+                    msgEl.className = "text-sm mt-2 font-bold h-5 text-red-500";
+                    input.value = "";
+                }
+            }, 50);
+        };
+        
+        reader.onerror = function() {
+            msgEl.innerText = "讀取錯誤";
+            alert("檔案讀取發生錯誤");
+            input.value = "";
+        };
+
+        msgEl.innerText = "讀取中...";
+        reader.readAsArrayBuffer(file);
+    }
+
+    function processImportData(dataRows) {
+        // Direct reset without confirm to avoid browser blocking
+        document.getElementById('daysContainer').innerHTML = '';
+        applicants = []; 
+        document.getElementById('applicantList').innerHTML = '';
+
+        const importedData = {};
+        const importedApplicants = new Set();
+        let validRowsCount = 0;
+
+        for (let i = 1; i < dataRows.length; i++) {
+            const row = dataRows[i];
+            if (!row || row.length === 0) continue;
+            let dateVal = row[0];
+            let vendorVal = row[1];
+            let applicantVal = row[2];
+
+            if (!dateVal || !vendorVal) continue;
+
+            let dateStr = "";
+            if (dateVal instanceof Date) {
+                const year = dateVal.getFullYear();
+                const month = String(dateVal.getMonth() + 1).padStart(2, '0');
+                const day = String(dateVal.getDate()).padStart(2, '0');
+                dateStr = `${year}-${month}-${day}`;
+            } else if (typeof dateVal === 'number') {
+                const d = new Date(Math.round((dateVal - 25569)*86400*1000));
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                dateStr = `${year}-${month}-${day}`;
+            } else {
+                let tempStr = dateVal.toString().trim().replace(/[\/\.]/g, '-');
+                // Standard YYYY-MM-DD
+                if (tempStr.match(/^\d{4}-\d{1,2}-\d{1,2}$/)) {
+                     const parts = tempStr.split('-');
+                     const y = parts[0];
+                     const m = parts[1].padStart(2, '0');
+                     const d = parts[2].padStart(2, '0');
+                     dateStr = `${y}-${m}-${d}`;
+                } 
+                // ROC Year 112-10-27
+                else if (tempStr.match(/^\d{2,3}-\d{1,2}-\d{1,2}$/)) {
+                     const parts = tempStr.split('-');
+                     const rocYear = parseInt(parts[0]);
+                     const y = rocYear + 1911;
+                     const m = parts[1].padStart(2, '0');
+                     const d = parts[2].padStart(2, '0');
+                     dateStr = `${y}-${m}-${d}`;
+                } else {
+                    continue;
+                }
+            }
+
+            if (!importedData[dateStr]) importedData[dateStr] = [];
+            importedData[dateStr].push(vendorVal.toString().trim());
+            validRowsCount++;
+
+            if (applicantVal) {
+                const names = applicantVal.toString().split(/[,、]/);
+                names.forEach(n => {
+                    const cleanName = n.trim();
+                    if(cleanName) importedApplicants.add(cleanName);
+                });
+            }
+        }
+
+        if (validRowsCount === 0) {
+            alert("匯入失敗：無有效資料列。");
+            addApplicant("申請人1");
+            addDay();
+            return;
+        }
+
+        if (importedApplicants.size > 0) {
+            importedApplicants.forEach(name => addApplicant(name));
+        } else {
+            addApplicant("申請人1");
+        }
+
+        const sortedDates = Object.keys(importedData).sort();
+        sortedDates.forEach(dateStr => {
+            const dayId = addDay(dateStr);
+            const vendors = importedData[dateStr];
+            const container = document.getElementById(dayId + '-vendors');
+            container.innerHTML = ''; 
+
+            vendors.forEach(vName => {
+                addVendorRow(dayId, vName, true); 
+            });
+        });
+
+        recalculateAll();
+    }
 
     // --- 3. APPLICANT MANAGEMENT ---
-    function handleEnter(e) {
-        if (e.key === 'Enter') addApplicant();
-    }
+    function handleEnter(e) { if (e.key === 'Enter') addApplicant(); }
 
     function addApplicant(nameOverride) {
         const input = document.getElementById('newApplicantInput');
         const name = nameOverride || input.value.trim();
-        
         if (name) {
-            if (applicants.includes(name) && !nameOverride) {
-                alert("此申請人已在名單中");
-                return;
-            }
+            if (applicants.includes(name) && !nameOverride) return;
             applicants.push(name);
             renderApplicants();
             input.value = '';
-            recalculateAll();
+            if(!nameOverride) recalculateAll();
         }
     }
 
     function removeApplicant(index) {
-        if (applicants.length <= 1) {
-            alert("至少需要一位申請人");
-            return;
-        }
+        if (applicants.length <= 1) { alert("至少需要一位申請人"); return; }
         applicants.splice(index, 1);
         renderApplicants();
         recalculateAll();
@@ -322,25 +450,28 @@
     }
 
     // --- 4. DAY & VENDOR UI ---
-    function addDay() {
+    function addDay(dateOverride = null) {
         const container = document.getElementById('daysContainer');
-        const dayId = 'day-' + Date.now();
+        const dayId = 'day-' + Date.now() + Math.floor(Math.random() * 10000);
         
-        // Default date logic
-        let defaultDate = new Date().toISOString().split('T')[0];
-        const dateInputs = document.querySelectorAll('input[type="date"]');
-        if (dateInputs.length > 0) {
-            const lastDateVal = dateInputs[dateInputs.length - 1].value;
-            if (lastDateVal) {
-                let d = new Date(lastDateVal);
-                d.setDate(d.getDate() + 1);
-                defaultDate = d.toISOString().split('T')[0];
+        let defaultDate = "";
+        if (dateOverride) {
+            defaultDate = dateOverride;
+        } else {
+            defaultDate = new Date().toISOString().split('T')[0];
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            if (dateInputs.length > 0) {
+                const lastDateVal = dateInputs[dateInputs.length - 1].value;
+                if (lastDateVal) {
+                    let d = new Date(lastDateVal);
+                    d.setDate(d.getDate() + 1);
+                    defaultDate = d.toISOString().split('T')[0];
+                }
             }
         }
 
         const dayHTML = `
             <div id="${dayId}" class="day-wrapper shadow-sm">
-                <!-- Header -->
                 <div class="day-header">
                     <div class="flex items-center gap-2">
                         <i class="fas fa-calendar-day text-blue-600"></i>
@@ -348,24 +479,14 @@
                     </div>
                     <button onclick="removeDay('${dayId}')" class="btn btn-outline btn-sm text-red-500 hover:text-white hover:bg-red-500 border-red-200" title="刪除此日"><i class="fas fa-times"></i></button>
                 </div>
-                
-                <!-- Body -->
                 <div class="day-body">
-                    <!-- Vendor List -->
-                    <div class="vendor-list-container space-y-2 mb-4" id="${dayId}-vendors">
-                        <!-- Vendors go here -->
-                    </div>
-                    
+                    <div class="vendor-list-container space-y-2 mb-4" id="${dayId}-vendors"></div>
                     <button onclick="addVendorRow('${dayId}')" class="btn btn-primary w-full py-2 mb-4 text-sm border-2 border-dashed border-blue-300 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 shadow-none"><i class="fas fa-plus mr-1"></i> 新增廠商</button>
-                    
-                    <!-- Day Settings & Breakdown -->
                     <div class="bg-gray-50 p-4 rounded border border-gray-200">
                         <div class="grid grid-cols-2 gap-2 text-xs text-gray-500 mb-2">
                              <div>基礎費用 (原價): <span id="${dayId}-baseRaw" class="font-bold text-gray-700">0</span></div>
                              <div>有效加場數: <span id="${dayId}-extraCount">0</span></div>
                         </div>
-
-                        <!-- Per Applicant Table -->
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left">
                                 <thead class="text-xs text-gray-500 uppercase bg-gray-100">
@@ -376,9 +497,7 @@
                                         <th class="px-2 py-2 text-right">當日小計</th>
                                     </tr>
                                 </thead>
-                                <tbody id="${dayId}-applicantTable">
-                                    <!-- Populated by JS -->
-                                </tbody>
+                                <tbody id="${dayId}-applicantTable"></tbody>
                             </table>
                         </div>
                     </div>
@@ -387,11 +506,14 @@
         `;
         
         container.insertAdjacentHTML('beforeend', dayHTML);
-        addVendorRow(dayId);
-        addVendorRow(dayId);
         
-        // Trigger recalculateAll to populate the new day's table immediately
-        recalculateAll();
+        if (!dateOverride) {
+            addVendorRow(dayId);
+            addVendorRow(dayId);
+            recalculateAll();
+        }
+        
+        return dayId;
     }
 
     function removeDay(dayId) {
@@ -401,33 +523,34 @@
         }
     }
 
-    function addVendorRow(dayId) {
+    function addVendorRow(dayId, vendorName = null, skipRecalc = false) {
         const container = document.getElementById(dayId + '-vendors');
         const rowId = 'row-' + Date.now() + Math.random().toString(36).substr(2, 5);
+        const valueAttr = vendorName ? `value="${vendorName}"` : '';
         
         const rowHTML = `
             <div id="${rowId}" class="flex flex-col sm:flex-row gap-2 items-end sm:items-center p-2 rounded hover:bg-gray-50 border-b border-gray-100 last:border-0 relative group">
                 <div class="w-8 text-gray-400 font-bold text-center text-xs index-label hidden sm:block">#</div>
-                
                 <div class="w-full sm:flex-1 relative">
-                    <input type="text" list="vendorOptions" class="input-field vendor-input" placeholder="廠商名稱" onchange="onVendorChange('${rowId}', '${dayId}')" oninput="onVendorChange('${rowId}', '${dayId}')">
+                    <input type="text" list="vendorOptions" class="input-field vendor-input" placeholder="廠商名稱" ${valueAttr} onchange="onVendorChange('${rowId}', '${dayId}')" oninput="onVendorChange('${rowId}', '${dayId}')">
                     <span class="text-xs text-red-500 absolute right-2 top-2 hidden group-dupe-alert"><i class="fas fa-exclamation-circle"></i> 相鄰距離2公里內</span>
                 </div>
-
                 <div class="flex gap-2 w-full sm:w-auto">
                     <input type="text" class="input-field bg-gray-100 text-gray-500 city-display text-sm w-1/2 sm:w-20" readonly tabindex="-1" placeholder="縣市">
                     <input type="number" class="input-field bg-gray-100 text-gray-500 cost-display text-sm w-1/2 sm:w-20" readonly tabindex="-1" placeholder="$">
                 </div>
-
                 <div class="w-full sm:w-20 text-center">
                      <span class="text-xs cross-city-badge px-2 py-1 rounded-full bg-gray-200 text-gray-400 block w-full text-center">-</span>
                 </div>
-
                 <button onclick="removeVendorRow('${rowId}')" class="text-gray-400 hover:text-red-500 px-2 transition-colors" tabindex="-1"><i class="fas fa-trash"></i></button>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', rowHTML);
         updateIndexes(dayId);
+
+        if (vendorName) {
+            onVendorChange(rowId, dayId, true); 
+        }
     }
 
     function removeVendorRow(rowId) {
@@ -447,8 +570,10 @@
         });
     }
 
-    function onVendorChange(rowId, dayId) {
+    function onVendorChange(rowId, dayId, skipRecalc = false) {
         const row = document.getElementById(rowId);
+        if(!row) return; 
+        
         const input = row.querySelector('.vendor-input');
         const cityDisplay = row.querySelector('.city-display');
         const costDisplay = row.querySelector('.cost-display');
@@ -476,26 +601,24 @@
                 badge.className = "text-xs cross-city-badge px-2 py-1 rounded-full bg-green-100 text-green-600 border border-green-200 block w-full text-center";
                 badge.innerText = "本地";
             }
-
         } else {
             cityDisplay.value = '';
             costDisplay.value = '';
             badge.className = "text-xs cross-city-badge px-2 py-1 rounded-full bg-gray-200 text-gray-400 block w-full text-center";
             badge.innerText = "-";
         }
-        recalculateAll();
+        
+        if (!skipRecalc) recalculateAll();
     }
 
     // --- 5. CALCULATION LOGIC ---
     function recalculateAll() {
         const days = document.querySelectorAll('.day-wrapper');
-        let applicantTotals = {}; // Map: Name -> Total
-        
-        // Init totals
+        let applicantTotals = {};
         applicants.forEach(app => applicantTotals[app] = 0);
 
         days.forEach(day => {
-            const dayResults = calculateDay(day.id); // Returns { name: amount }
+            const dayResults = calculateDay(day.id);
             for (const [name, amount] of Object.entries(dayResults)) {
                 if (applicantTotals[name] !== undefined) {
                     applicantTotals[name] += amount;
@@ -506,7 +629,6 @@
         const docFee = 500;
         let grandTotal = 0;
 
-        // Update Summary Table
         const tbody = document.getElementById('summaryTableBody');
         tbody.innerHTML = '';
         
@@ -546,11 +668,9 @@
         let maxCost = 0;
         let hasCrossCity = false;
 
-        // 1. Gather Data
         inputs.forEach(input => {
             const row = input.closest('div[id^="row-"]');
             const vData = vendorsDB.find(v => v.name === input.value);
-            
             input.classList.remove('text-red-500', 'font-bold');
             row.querySelector('.group-dupe-alert').classList.add('hidden');
             
@@ -565,19 +685,9 @@
                     if (vData.city.includes('台中')) isCross = false;
                 }
                 if (isCross) hasCrossCity = true;
-                
-                const badge = row.querySelector('.cross-city-badge');
-                if (isCross) {
-                    badge.className = "text-xs cross-city-badge px-2 py-1 rounded-full bg-orange-100 text-orange-600 font-bold border border-orange-200 block w-full text-center";
-                    badge.innerText = "跨縣市";
-                } else {
-                    badge.className = "text-xs cross-city-badge px-2 py-1 rounded-full bg-green-100 text-green-600 border border-green-200 block w-full text-center";
-                    badge.innerText = "本地";
-                }
             }
         });
 
-        // 2. Logic: Group Deductions
         if (selectedVendors.length === 0) maxCost = 0;
         const totalStops = selectedVendors.length;
         let deduction = 0;
@@ -601,36 +711,27 @@
             }
         });
 
-        // 3. Calc Fees
         let effectiveStops = 0;
         if (totalStops > 0) {
             effectiveStops = Math.max(0, totalStops - 1 - deduction);
         }
         const extraFeeTotal = effectiveStops * 100;
 
-        // Display Base Raw Info
         document.getElementById(dayId + '-baseRaw').innerText = `$${maxCost}`;
         document.getElementById(dayId + '-extraCount').innerText = effectiveStops;
 
-        // 4. Render Applicant Rows & Calculate Per Person
-        let dayResult = {}; // name -> total
+        let dayResult = {};
 
-        // First clean up deleted applicants from DOM
         Array.from(tableBody.children).forEach(row => {
             const name = row.getAttribute('data-name');
-            if (!applicants.includes(name)) {
-                row.remove();
-            }
+            if (!applicants.includes(name)) row.remove();
         });
 
         applicants.forEach(app => {
             let row = tableBody.querySelector(`tr[data-name="${app}"]`);
             if (!row) {
-                // Determine defaults by looking at previous day
                 let defaultBase = 'split';
                 let defaultExtra = 'full';
-                
-                // Try to find previous day
                 const prevDay = dayContainer.previousElementSibling;
                 if (prevDay && prevDay.classList.contains('day-wrapper')) {
                      const prevTable = prevDay.querySelector(`#${prevDay.id}-applicantTable`);
@@ -668,30 +769,24 @@
             const baseSelect = row.querySelector('.base-mode-select');
             const extraSelect = row.querySelector('.extra-mode-select');
 
-            // Update Base Options Text (Dynamic amounts)
             baseSelect.options[0].text = `全額 (+$${maxCost})`;
             baseSelect.options[1].text = `平分 (+$${Math.round(maxCost/carpoolCount)})`;
             baseSelect.options[2].text = `不領取`;
 
-            // Update Extra Options Text (Dynamic amounts)
             extraSelect.options[0].text = `全額 (+$${extraFeeTotal})`;
             extraSelect.options[1].text = `平分 (+$${Math.round(extraFeeTotal/carpoolCount)})`;
             extraSelect.options[2].text = `不領取`;
             
-            // Auto-correct Split to Full if Local (and not explicitly set to 'none' by user)
-            // Note: If user set to 'none', we respect that. If 'split', we force 'full'.
             if (!hasCrossCity) {
                 if (baseSelect.value === 'split') baseSelect.value = 'full';
                 if (extraSelect.value === 'split') extraSelect.value = 'full';
             }
 
-            // Calculate Base
             let myBase = 0;
             const baseMode = baseSelect.value;
             if (baseMode === 'full') myBase = maxCost;
             else if (baseMode === 'split') myBase = maxCost / carpoolCount;
 
-            // Calculate Extra
             let myExtra = 0;
             const extraMode = extraSelect.value;
             if (extraMode === 'full') myExtra = extraFeeTotal;
@@ -700,7 +795,6 @@
             const myTotal = myBase + myExtra;
             dayResult[app] = myTotal;
 
-            // Update Total Cell
             row.querySelector('.total-cell').innerText = `$${Math.round(myTotal)}`;
         });
 
@@ -709,8 +803,4 @@
 </script>
 
 </body>
-
 </html>
-
-
-
