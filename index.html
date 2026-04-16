@@ -81,9 +81,10 @@
             <div class="col-span-1 md:col-span-2 bg-blue-50 p-4 rounded-lg border border-blue-100">
                 <label class="input-label mb-2">申請人名單</label>
                 <div class="flex gap-2 mb-2">
-                    <input type="text" id="newApplicantInput" class="input-field" placeholder="輸入姓名後按新增" onkeypress="handleEnter(event)">
+                    <input type="text" id="newApplicantInput" list="applicantOptionsList" class="input-field" placeholder="選擇或輸入姓名後按新增" onkeypress="handleEnter(event)">
                     <button onclick="addApplicant()" class="btn btn-primary whitespace-nowrap">新增</button>
                 </div>
+                <datalist id="applicantOptionsList"></datalist>
                 <div id="applicantList" class="flex flex-wrap"></div>
             </div>
 
@@ -163,6 +164,18 @@
             <button onclick="closeAdmin()" class="btn btn-danger"><i class="fas fa-sign-out-alt mr-2"></i>登出並返回系統</button>
         </div>
         
+        <!-- 申請人名單管理 -->
+        <div class="card shadow-md mb-6 border-l-4 border-indigo-500">
+            <h2 class="text-lg font-bold mb-4 text-gray-700"><i class="fas fa-users text-blue-500 mr-2"></i>預設申請人名單管理</h2>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="adminNewApplicant" placeholder="輸入新人員姓名" class="input-field" onkeypress="if(event.key==='Enter') adminAddApplicant()">
+                <button onclick="adminAddApplicant()" class="btn btn-primary">新增人員</button>
+            </div>
+            <div id="adminApplicantList" class="flex flex-wrap gap-2 p-2 bg-gray-50 rounded border border-gray-200 min-h-[50px]">
+                <!-- tags will be injected here -->
+            </div>
+        </div>
+
         <!-- 新增/編輯表單 -->
         <div class="card border-l-4 border-green-500 shadow-md">
             <h2 class="text-lg font-bold mb-4 text-gray-700" id="adminFormTitle">新增行程廠商</h2>
@@ -337,6 +350,9 @@
     // 從 Local Storage 讀取設定，如果沒有就使用預設值
     let vendorsDB = JSON.parse(localStorage.getItem('vendorsDB')) || JSON.parse(JSON.stringify(defaultVendorsDB));
 
+    const defaultApplicantsDB = ["王小明", "李大華"];
+    let applicantsDB = JSON.parse(localStorage.getItem('applicantsDB')) || [...defaultApplicantsDB];
+
     // Exclusion Groups
     const exclusionGroups = [["信捷", "宏泰", "岏宬"], ["阿米哥", "上元", "萬新"], ["正泰", "環泰"], ["建新", "大輝"], ["發輝", "炬田", "金協億", "金協連", "俊陽伸"], ["泳裕", "仲亮", "合全", "萬益", "崇祐"], ["永吉", "三權", "瑞明"], ["鴻岳", "力群", "順發"], ["天機", "盛祿"], ["新公環境", "新公鋼鐵"], ["和昌", "宏田"], ["回玻", "信全"], ["強鏡", "益杰", "高達"], ["大里", "展誠"], ["佑順環保", "禾盛"], ["佑運", "鑫茂"]];
 
@@ -345,7 +361,8 @@
     window.onload = function() {
         // Initialize with default office (New Taipei)
         updateVendorList("新北");
-        addApplicant("申請人1");
+        updateApplicantDatalist();
+        // 移除網頁載入時自動新增申請人的動作
         addDay();
     };
 
@@ -400,6 +417,16 @@
             tag.className = 'applicant-tag';
             tag.innerHTML = `<span><i class="fas fa-user mr-1"></i>${app}</span> <button onclick="removeApplicant(${index})"><i class="fas fa-times"></i></button>`;
             container.appendChild(tag);
+        });
+    }
+
+    function updateApplicantDatalist() {
+        const dl = document.getElementById('applicantOptionsList');
+        dl.innerHTML = '';
+        applicantsDB.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            dl.appendChild(opt);
         });
     }
 
@@ -809,6 +836,7 @@
     function openAdmin() {
         document.getElementById('adminPanel').classList.remove('hidden');
         renderAdminTable();
+        renderAdminApplicants();
     }
 
     function closeAdmin() {
@@ -928,6 +956,42 @@
             saveToLocal();
             renderAdminTable();
         }
+    }
+
+    function renderAdminApplicants() {
+        const container = document.getElementById('adminApplicantList');
+        container.innerHTML = '';
+        applicantsDB.forEach((name, idx) => {
+            const tag = document.createElement('div');
+            tag.className = 'applicant-tag bg-white shadow-sm border border-gray-200';
+            tag.innerHTML = `<span><i class="fas fa-user mr-1 text-blue-400"></i>${name}</span> <button onclick="adminDeleteApplicant(${idx})" class="ml-2 text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>`;
+            container.appendChild(tag);
+        });
+        updateApplicantDatalist();
+    }
+
+    function adminAddApplicant() {
+        const name = document.getElementById('adminNewApplicant').value.trim();
+        if(name && !applicantsDB.includes(name)) {
+            applicantsDB.push(name);
+            saveApplicantsToLocal();
+            renderAdminApplicants();
+            document.getElementById('adminNewApplicant').value = '';
+        } else if (applicantsDB.includes(name)) {
+            alert("此人員已在名單中！");
+        }
+    }
+
+    function adminDeleteApplicant(idx) {
+        if(confirm(`確定要將「${applicantsDB[idx]}」從預設名單中刪除嗎？`)) {
+            applicantsDB.splice(idx, 1);
+            saveApplicantsToLocal();
+            renderAdminApplicants();
+        }
+    }
+
+    function saveApplicantsToLocal() {
+        localStorage.setItem('applicantsDB', JSON.stringify(applicantsDB));
     }
 </script>
 
