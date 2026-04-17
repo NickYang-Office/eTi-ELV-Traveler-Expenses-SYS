@@ -351,7 +351,13 @@
     let vendorsDB = JSON.parse(localStorage.getItem('vendorsDB')) || JSON.parse(JSON.stringify(defaultVendorsDB));
 
     const defaultApplicantsDB = ["王小明", "李大華"];
-    let applicantsDB = JSON.parse(localStorage.getItem('applicantsDB')) || [...defaultApplicantsDB];
+    let applicantsDB = [];
+    try {
+        const storedApps = localStorage.getItem('applicantsDB');
+        applicantsDB = storedApps ? JSON.parse(storedApps) : [...defaultApplicantsDB];
+    } catch(e) {
+        applicantsDB = [...defaultApplicantsDB];
+    }
 
     // Exclusion Groups
     const exclusionGroups = [["信捷", "宏泰", "岏宬"], ["阿米哥", "上元", "萬新"], ["正泰", "環泰"], ["建新", "大輝"], ["發輝", "炬田", "金協億", "金協連", "俊陽伸"], ["泳裕", "仲亮", "合全", "萬益", "崇祐"], ["永吉", "三權", "瑞明"], ["鴻岳", "力群", "順發"], ["天機", "盛祿"], ["新公環境", "新公鋼鐵"], ["和昌", "宏田"], ["回玻", "信全"], ["強鏡", "益杰", "高達"], ["大里", "展誠"], ["佑順環保", "禾盛"], ["佑運", "鑫茂"]];
@@ -977,8 +983,21 @@
             saveApplicantsToLocal();
             renderAdminApplicants();
             document.getElementById('adminNewApplicant').value = '';
+            
+            // 加入按鈕回饋
+            const btn = document.querySelector('button[onclick="adminAddApplicant()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check mr-1"></i> 已儲存';
+            btn.classList.add('bg-green-600', 'border-green-600');
+            setTimeout(() => { 
+                btn.innerHTML = originalText; 
+                btn.classList.remove('bg-green-600', 'border-green-600'); 
+            }, 1500);
+
         } else if (applicantsDB.includes(name)) {
             alert("此人員已在名單中！");
+        } else {
+            alert("請輸入人員姓名！");
         }
     }
 
