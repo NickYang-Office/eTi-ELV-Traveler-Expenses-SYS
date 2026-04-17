@@ -351,7 +351,7 @@
     let vendorsDB = JSON.parse(localStorage.getItem('vendorsDB')) || JSON.parse(JSON.stringify(defaultVendorsDB));
 
     const defaultApplicantsDB = ["張榮村", "林哲生", "蔡其祝", "羅斯文", "于鈞杰", "吳銘杰", "張達鈞"];
-    let applicantsDB = [];
+    let applicantsDB = ["張榮村", "林哲生", "蔡其祝", "羅斯文", "于鈞杰", "吳銘杰", "張達鈞"];
     try {
         const storedApps = localStorage.getItem('applicantsDB');
         applicantsDB = storedApps ? JSON.parse(storedApps) : [...defaultApplicantsDB];
