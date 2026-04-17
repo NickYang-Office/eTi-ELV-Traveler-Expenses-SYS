@@ -350,7 +350,7 @@
     // 從 Local Storage 讀取設定，如果沒有就使用預設值
     let vendorsDB = JSON.parse(localStorage.getItem('vendorsDB')) || JSON.parse(JSON.stringify(defaultVendorsDB));
 
-    const defaultApplicantsDB = ["王小明", "李大華"];
+    const defaultApplicantsDB = ["張榮村", "林哲生", "蔡其祝", "羅斯文", "于鈞杰", "吳銘杰", "張達鈞"];
     let applicantsDB = [];
     try {
         const storedApps = localStorage.getItem('applicantsDB');
