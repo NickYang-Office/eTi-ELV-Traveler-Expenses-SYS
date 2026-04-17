@@ -242,7 +242,7 @@
         { "name": "信捷企業社", "city": "宜蘭", "office": "新北", "cost": 1300 },
         { "name": "銓鈐環保有限公司", "city": "基隆", "office": "新北", "cost": 650 },
         { "name": "萬新環保有限公司", "city": "基隆", "office": "新北", "cost": 650 },
-        { "name": "順瀚環保有限公司(七堵廠)", "city": "基隆", "office": "新北", "cost": 650 },
+        { "name": "順瀚環保有限公司-七堵廠", "city": "基隆", "office": "新北", "cost": 650 },
         { "name": "原裕汽車企業有限公司", "city": "台北", "office": "新北", "cost": 250 },
         { "name": "環泰環保工程有限公司", "city": "台北", "office": "新北", "cost": 250 },
         { "name": "正泰環保實業有限公司", "city": "台北", "office": "新北", "cost": 250 },
@@ -273,7 +273,7 @@
         { "name": "富源企業社", "city": "桃園", "office": "新北", "cost": 650 },
         { "name": "展欣企業社", "city": "桃園", "office": "新北", "cost": 650 },
         { "name": "達祐企業社", "city": "桃園", "office": "新北", "cost": 650 },
-        { "name": "裕清環保工程有限公司(桃園公司)", "city": "桃園", "office": "新北", "cost": 650 },
+        { "name": "裕清環保工程有限公司-桃園公司", "city": "桃園", "office": "新北", "cost": 650 },
         { "name": "昊駿實業有限公司", "city": "桃園", "office": "新北", "cost": 650 },
         { "name": "生光汽車材料五金有限公司", "city": "桃園", "office": "新北", "cost": 650 },
         { "name": "瑞明環保工程有限公司", "city": "桃園觀音大園", "office": "新北", "cost": 900 },
@@ -327,12 +327,12 @@
         { "name": "經智鴻環保有限公司", "city": "台中", "office": "台中", "cost": 350 },
         { "name": "星中環保企業社", "city": "台中太平", "office": "台中", "cost": 400 },
         { "name": "和泰環保有限公司", "city": "台中", "office": "台中", "cost": 350 },
+        { "name": "金旺環保工程有限公司", "city": "台中", "office": "台中", "cost": 350 },
+        { "name": "泰鋒商行", "city": "台中", "office": "台中", "cost": 350 },
         { "name": "高盟汽車材料行", "city": "南投", "office": "台中", "cost": 750 },
         { "name": "南投環保工程有限公司", "city": "南投", "office": "台中", "cost": 750 },
         { "name": "信雄五金企業行", "city": "南投竹山", "office": "台中", "cost": 950 },
         { "name": "洪佳企業有限公司", "city": "南投", "office": "台中", "cost": 750 },
-        { "name": "金旺環保工程有限公司", "city": "台中", "office": "台中", "cost": 350 },
-        { "name": "泰鋒商行", "city": "台中", "office": "台中", "cost": 350 },
         { "name": "追蹤查核-宜蘭", "city": "宜蘭", "office": "新北", "cost": 1300 },
         { "name": "追蹤查核-基隆", "city": "基隆", "office": "新北", "cost": 650 },
         { "name": "追蹤查核-台北", "city": "台北", "office": "新北", "cost": 250 },
@@ -724,6 +724,16 @@
 
         let dayResult = {};
 
+        // 偵測是否從「本地」切換成「跨縣市」或反之
+        let prevHasCrossCity = dayContainer.dataset.prevCrossCity;
+        let crossCityStateChanged = false;
+        if (prevHasCrossCity !== undefined) {
+            if ((prevHasCrossCity === 'true') !== hasCrossCity) {
+                crossCityStateChanged = true;
+            }
+        }
+        dayContainer.dataset.prevCrossCity = hasCrossCity;
+
         // 1. Determine Visible Applicants for this Day
         const limitedAppsJson = dayContainer.dataset.limitedApplicants;
         const visibleApplicants = limitedAppsJson ? JSON.parse(limitedAppsJson) : applicants;
@@ -742,14 +752,14 @@
 
             let row = tableBody.querySelector(`tr[data-name="${app}"]`);
             if (!row) {
-                let defaultBase = 'split';
+                let defaultBase = hasCrossCity ? 'split' : 'full';
                 let defaultExtra = 'full';
                 const prevDay = dayContainer.previousElementSibling;
                 if (prevDay && prevDay.classList.contains('day-wrapper')) {
                      const prevTable = prevDay.querySelector(`#${prevDay.id}-applicantTable`);
                      const prevRow = prevTable ? prevTable.querySelector(`tr[data-name="${app}"]`) : null;
                      if (prevRow) {
-                         defaultBase = prevRow.querySelector('.base-mode-select').value;
+                         // 基礎費不再繼承前一天，嚴格遵守跨縣市預設平分、本地預設全額的規則
                          defaultExtra = prevRow.querySelector('.extra-mode-select').value;
                      }
                 }
@@ -780,6 +790,11 @@
             
             const baseSelect = row.querySelector('.base-mode-select');
             const extraSelect = row.querySelector('.extra-mode-select');
+
+            // 如果該日的廠商類型（跨縣市/本地）發生改變，則自動切換為對應的預設值
+            if (crossCityStateChanged) {
+                baseSelect.value = hasCrossCity ? 'split' : 'full';
+            }
 
             baseSelect.options[0].text = `全額 (+$${maxCost})`;
             baseSelect.options[1].text = `平分 (+$${Math.round(maxCost/carpoolCount)})`;
