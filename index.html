@@ -331,6 +331,8 @@
         { "name": "南投環保工程有限公司", "city": "南投", "office": "台中", "cost": 750 },
         { "name": "信雄五金企業行", "city": "南投竹山", "office": "台中", "cost": 950 },
         { "name": "洪佳企業有限公司", "city": "南投", "office": "台中", "cost": 750 },
+        { "name": "金旺環保工程有限公司", "city": "台中", "office": "台中", "cost": 350 },
+        { "name": "泰鋒商行", "city": "台中", "office": "台中", "cost": 350 },
         { "name": "追蹤查核-宜蘭", "city": "宜蘭", "office": "新北", "cost": 1300 },
         { "name": "追蹤查核-基隆", "city": "基隆", "office": "新北", "cost": 650 },
         { "name": "追蹤查核-台北", "city": "台北", "office": "新北", "cost": 250 },
@@ -351,7 +353,7 @@
     let vendorsDB = JSON.parse(localStorage.getItem('vendorsDB')) || JSON.parse(JSON.stringify(defaultVendorsDB));
 
     const defaultApplicantsDB = ["張榮村", "林哲生", "蔡其祝", "羅斯文", "于鈞杰", "吳銘杰", "張達鈞"];
-    let applicantsDB = ["張榮村", "林哲生", "蔡其祝", "羅斯文", "于鈞杰", "吳銘杰", "張達鈞"];
+    let applicantsDB = [];
     try {
         const storedApps = localStorage.getItem('applicantsDB');
         applicantsDB = storedApps ? JSON.parse(storedApps) : [...defaultApplicantsDB];
