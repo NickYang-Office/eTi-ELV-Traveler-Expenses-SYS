@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>廢車組人員差旅費用試算系統 (v1.1.0)</title>
+    <title>廢車組人員差旅費用試算系統 (v1.1.2)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -63,27 +63,12 @@
             background-size: 1.5em 1.5em;
         }
         .cost-select:focus { border-color: #3b82f6; }
-
-        /* 列印專用樣式 (A4 簽核單模式) */
-        .print-only { display: none; }
-        @media print {
-            body { background-color: white !important; padding-bottom: 0 !important; font-size: 12pt; color: black; }
-            .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            .card { box-shadow: none !important; border: 1px solid #9ca3af !important; margin-bottom: 1rem !important; padding: 1rem !important; break-inside: avoid; }
-            .day-wrapper { break-inside: avoid; margin-bottom: 1rem !important; box-shadow: none !important; }
-            .day-header { background-color: #f3f4f6 !important; border: 1px solid #9ca3af !important; border-bottom: 2px solid #374151 !important; }
-            .day-body { border: 1px solid #9ca3af !important; border-top: none !important; }
-            .input-field, .cost-select { border: none !important; background: transparent !important; padding: 0 !important; appearance: none !important; background-image: none !important; font-weight: 500; color: black !important; }
-            input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; }
-            .grand-total-bar { display: none !important; }
-        }
     </style>
 </head>
 <body class="pb-32">
 
 <!-- 頂部浮動工具列 (草稿管理 & 後台登入) -->
-<div class="fixed top-4 right-4 flex gap-2 z-40 no-print">
+<div class="fixed top-4 right-4 flex gap-2 z-40">
     <button onclick="openDraftModal()" class="text-gray-700 hover:text-indigo-600 bg-white px-3 py-2 rounded-lg shadow-md text-sm font-medium border border-gray-200 transition-all flex items-center">
         <i class="fas fa-folder-open text-indigo-500 mr-1.5"></i>專案草稿
         <span id="draftCountBadge" class="ml-1.5 px-1.5 py-0.5 text-xs bg-indigo-100 text-indigo-700 rounded-full">0</span>
@@ -94,26 +79,16 @@
 </div>
 
 <div class="max-w-5xl mx-auto p-4 pt-14 sm:pt-6">
-    <!-- 網頁標題 (一般檢視) -->
-    <div class="mb-6 text-center no-print">
+    <!-- 網頁標題 -->
+    <div class="mb-6 text-center">
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">
-            <i class="fas fa-car-crash text-blue-600 mr-2"></i>廢車組人員差旅費用試算系統 <span class="text-sm font-normal bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full align-middle">v1.1.0</span>
+            <i class="fas fa-car-crash text-blue-600 mr-2"></i>廢車組人員差旅費用試算系統 <span class="text-sm font-normal bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full align-middle">v1.1.2</span>
         </h1>
-        <p class="text-gray-500 text-sm mt-1">智慧行程解析・相鄰加場防呆・一鍵分攤・多分頁 Excel 報銷單</p>
-    </div>
-
-    <!-- 列印專用表頭 (A4 簽核模式顯示) -->
-    <div class="print-only mb-6 border-b-2 border-gray-800 pb-4">
-        <h1 class="text-2xl font-bold text-center text-gray-900">廢車組專案人員差旅費用申報明細表</h1>
-        <div class="flex justify-between text-sm text-gray-700 mt-3">
-            <div>出發據點：<span id="printOfficeName" class="font-bold">新北辦公室</span></div>
-            <div>專案名稱：<span id="printProjectTitle" class="font-bold">一般差旅申報</span></div>
-            <div>製表日期：<span id="printGeneratedDate"></span></div>
-        </div>
+        <p class="text-gray-500 text-sm mt-1">智慧行程解析・相鄰加場防呆・一鍵分攤・多分頁 Excel 報表</p>
     </div>
 
     <!-- 快速專案存檔列 -->
-    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 no-print">
+    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div class="flex items-center gap-2 flex-1">
             <i class="fas fa-bookmark text-indigo-500 ml-1"></i>
             <input type="text" id="currentProjectName" class="input-field bg-white text-sm py-1.5" placeholder="輸入本次差旅專案名稱（例：10月第3週新北廢車稽查）" oninput="autoSaveWorkingState()">
@@ -129,7 +104,7 @@
     </div>
 
     <!-- 1. 基本設定 Card -->
-    <div class="card border-l-4 border-blue-500 no-print">
+    <div class="card border-l-4 border-blue-500">
         <h2 class="text-lg font-bold mb-4 text-gray-700 flex items-center justify-between">
             <span><i class="fas fa-sliders-h text-blue-500 mr-2"></i>1. 基本設定 (全行程適用)</span>
             <span class="text-xs font-normal text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200" id="autoSaveIndicator"><i class="fas fa-check-circle mr-1"></i>已自動暫存</span>
@@ -156,6 +131,7 @@
                     <option value="新北" selected>新北辦公室</option>
                     <option value="台中">台中辦公室</option>
                 </select>
+                <p class="text-xs text-blue-500 mt-1">* 自動篩選該辦公室可選廠商與跨縣市判定</p>
             </div>
             <div class="input-group mb-0">
                 <label class="input-label">預設共乘人數 (母數)</label>
@@ -176,7 +152,7 @@
     </div>
 
     <!-- 2. 智慧文字批次解析 Card -->
-    <div class="card border-l-4 border-amber-500 no-print">
+    <div class="card border-l-4 border-amber-500">
         <div class="flex justify-between items-center cursor-pointer" onclick="toggleSmartParsePanel()">
             <h2 class="text-lg font-bold text-gray-700 flex items-center">
                 <i class="fas fa-magic text-amber-500 mr-2"></i>2. 智慧行程文字快速匯入
@@ -189,9 +165,9 @@
         
         <div id="smartParseBody" class="hidden mt-4 pt-3 border-t border-gray-100">
             <p class="text-xs text-gray-600 mb-2">
-                請貼上包含「<strong>日期</strong>」、「<strong>人員姓名</strong>（選填）」與「<strong>廠商名稱或簡稱</strong>」的文字：
+                請貼上包含「<strong>日期</strong>」、「<strong>人員姓名</strong>（選填）」與「<strong>廠商名稱或簡稱</strong>」的文字。系統會自動比對廠商庫、新增申請人並建立對應日期卡片：
             </p>
-            <textarea id="smartParseTextarea" rows="4" class="input-field font-mono text-sm mb-3 bg-amber-50/40" placeholder="範例格式：&#10;10/20 張榮村、林哲生：信捷、宏泰、萬新&#10;10/21 張榮村、張浩熏：發輝、炬田、艾沙"></textarea>
+            <textarea id="smartParseTextarea" rows="4" class="input-field font-mono text-sm mb-3 bg-amber-50/40" placeholder="範例格式：&#10;10/20 張榮村、林哲生：信捷、宏泰、萬新&#10;10/21 張榮村、張浩熏：發輝、炬田、艾沙&#10;2026-10-22 林哲生：追蹤查核-桃園、三億企業社"></textarea>
             <div class="flex flex-wrap justify-between items-center gap-2">
                 <button onclick="fillSampleParseText()" class="btn btn-outline text-xs py-1.5">
                     <i class="fas fa-lightbulb text-amber-500 mr-1"></i>載入範例文字測試
@@ -211,8 +187,8 @@
 
     <!-- 3. 每日行程明細標題與容器 -->
     <div class="flex justify-between items-center mb-3">
-        <h2 class="text-lg font-bold text-gray-700"><i class="fas fa-route text-blue-500 mr-2 no-print"></i>3. 每日行程與分攤明細</h2>
-        <div class="text-xs text-gray-500 no-print">
+        <h2 class="text-lg font-bold text-gray-700"><i class="fas fa-route text-blue-500 mr-2"></i>3. 每日行程與分攤明細</h2>
+        <div class="text-xs text-gray-500">
             <i class="fas fa-info-circle mr-1"></i>相鄰 2 公里內廠商將自動標紅並扣除加場費
         </div>
     </div>
@@ -220,23 +196,19 @@
     <div id="daysContainer" class="space-y-6"></div>
 
     <!-- 新增空白日期按鈕 -->
-    <div class="mt-6 text-center no-print">
+    <div class="mt-6 text-center">
         <button onclick="addDay()" class="btn btn-primary text-base px-6 py-2.5 shadow-md transform hover:scale-105 transition-transform">
             <i class="fas fa-calendar-plus mr-2"></i> 新增空白日期
         </button>
     </div>
 
-    <!-- 4. 費用總結與匯出列印 Card -->
+    <!-- 4. 費用總結與匯出 Card -->
     <div class="card mt-8 border-l-4 border-indigo-500" id="finalSummaryCard">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-            <h2 class="text-lg font-bold text-gray-700"><i class="fas fa-file-invoice-dollar text-indigo-500 mr-2 no-print"></i>4. 費用總結與報表輸出</h2>
-            <div class="flex flex-wrap gap-2 no-print">
-                <!-- 更新為 Excel 匯出按鈕 -->
+            <h2 class="text-lg font-bold text-gray-700"><i class="fas fa-file-invoice-dollar text-indigo-500 mr-2"></i>4. 費用總結與報表輸出</h2>
+            <div class="flex flex-wrap gap-2">
                 <button onclick="exportToExcel()" class="btn btn-success text-xs py-1.5 px-3">
                     <i class="fas fa-file-excel mr-1.5"></i>匯出 Excel (.xlsx) 多分頁報表
-                </button>
-                <button onclick="printReport()" class="btn btn-indigo text-xs py-1.5 px-3">
-                    <i class="fas fa-print mr-1.5"></i>A4 報銷單列印 / PDF
                 </button>
             </div>
         </div>
@@ -263,30 +235,12 @@
                 </tfoot>
             </table>
         </div>
-
-        <!-- 列印專用：A4 簽核欄 -->
-        <div class="print-only mt-10 pt-4">
-            <div class="grid grid-cols-4 gap-4 border border-gray-800 text-center text-sm">
-                <div class="border-r border-gray-800 p-2">
-                    <div class="font-bold border-b border-gray-400 pb-1 mb-12">申請人簽章</div>
-                </div>
-                <div class="border-r border-gray-800 p-2">
-                    <div class="font-bold border-b border-gray-400 pb-1 mb-12">專案負責人</div>
-                </div>
-                <div class="border-r border-gray-800 p-2">
-                    <div class="font-bold border-b border-gray-400 pb-1 mb-12">部門主管</div>
-                </div>
-                <div class="p-2">
-                    <div class="font-bold border-b border-gray-400 pb-1 mb-12">財務／核准</div>
-                </div>
-            </div>
-        </div>
     </div>
 
 </div>
 
 <!-- 底部總金額常駐列 -->
-<div class="grand-total-bar flex justify-between items-center no-print">
+<div class="grand-total-bar flex justify-between items-center">
     <div>
         <div class="text-sm opacity-80">本次申請總支出</div>
         <div class="text-xs opacity-60" id="totalApplicantsCount">0 位人員合計</div>
@@ -299,8 +253,7 @@
 <datalist id="vendorOptions"></datalist>
 
 <!-- 專案草稿管理 Modal -->
-<!-- ...與原本相同... -->
-<div id="draftModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-[90] p-4 no-print">
+<div id="draftModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-[90] p-4">
     <div class="bg-white rounded-xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
         <div class="p-4 bg-indigo-600 text-white flex justify-between items-center">
             <h3 class="text-lg font-bold"><i class="fas fa-folder-open mr-2"></i>試算紀錄與歷史草稿管理</h3>
@@ -321,8 +274,8 @@
     </div>
 </div>
 
-<!-- 後台管理相關 Modal/Panel (保留與原本相同) -->
-<div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-[100] no-print">
+<!-- 登入對話框 (Modal) -->
+<div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-[100]">
     <div class="bg-white p-6 rounded-lg w-80 shadow-xl">
         <h2 class="text-xl font-bold mb-4 text-gray-800"><i class="fas fa-lock text-gray-500 mr-2"></i>管理員登入</h2>
         <input type="text" id="adminUser" placeholder="帳號" class="input-field mb-3" onkeypress="handleLoginEnter(event)">
@@ -335,7 +288,8 @@
     </div>
 </div>
 
-<div id="adminPanel" class="fixed inset-0 bg-gray-100 hidden z-[100] overflow-y-auto no-print">
+<!-- 後台管理面板 (Panel) -->
+<div id="adminPanel" class="fixed inset-0 bg-gray-100 hidden z-[100] overflow-y-auto">
     <div class="max-w-5xl mx-auto p-4 py-8">
         <div class="flex flex-wrap justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200 gap-3">
             <h1 class="text-2xl font-bold text-gray-800"><i class="fas fa-cogs text-blue-500 mr-2"></i>行程、人員與規則管理後台</h1>
@@ -350,19 +304,92 @@
                 <button onclick="closeAdmin()" class="btn btn-danger text-xs"><i class="fas fa-sign-out-alt mr-1.5"></i>登出返回前台</button>
             </div>
         </div>
-        <!-- (後台管理區塊省略未改，維持原本 HTML 結構) -->
-        <div class="card shadow-md mb-6 border-l-4 border-indigo-500"><h2 class="text-lg font-bold mb-4 text-gray-700"><i class="fas fa-users text-blue-500 mr-2"></i>預設申請人名單管理</h2><div class="flex gap-2 mb-4"><input type="text" id="adminNewApplicant" placeholder="輸入新人員姓名" class="input-field" onkeypress="if(event.key==='Enter') adminAddApplicant()"><button onclick="adminAddApplicant()" class="btn btn-primary whitespace-nowrap">新增人員</button></div><div id="adminApplicantList" class="flex flex-wrap gap-2 p-2 bg-gray-50 rounded border border-gray-200 min-h-[50px]"></div></div>
-        <div class="card shadow-md mb-6 border-l-4 border-amber-500"><div class="flex justify-between items-center mb-2"><h2 class="text-lg font-bold text-gray-700"><i class="fas fa-map-marker-alt text-amber-500 mr-2"></i>2公里內相鄰廠商群組管理</h2><button onclick="resetToDefaultExclusions()" class="btn btn-outline text-xs text-red-500 border-red-200 hover:bg-red-50"><i class="fas fa-undo mr-1"></i>還原預設群組</button></div><p class="text-xs text-gray-500 mb-3">輸入廠商名稱關鍵字（以逗號「,」或頓號「、」分隔，例如：<code class="bg-gray-100 px-1">佑順環保、佑順汽車、禾盛</code>），當同一日行程包含同群組內 2 家以上廠商時，將自動扣除重複的加場費。</p><div class="flex gap-2 mb-4"><input type="text" id="newExclusionGroupInput" placeholder="輸入相鄰廠商關鍵字，以逗號或頓號分隔 (至少2家)" class="input-field" onkeypress="if(event.key==='Enter') addExclusionGroup()"><button onclick="addExclusionGroup()" class="btn btn-warning whitespace-nowrap"><i class="fas fa-plus mr-1"></i>新增相鄰群組</button></div><div id="adminExclusionList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-3 bg-gray-50 rounded border border-gray-200 max-h-60 overflow-y-auto"></div></div>
-        <div class="card border-l-4 border-green-500 shadow-md"><h2 class="text-lg font-bold mb-4 text-gray-700" id="adminFormTitle">新增行程廠商</h2><input type="hidden" id="editIndex" value="-1"><div class="grid grid-cols-1 md:grid-cols-4 gap-4"><div><label class="input-label">廠商名稱</label><input type="text" id="vName" placeholder="例: 某某環保公司" class="input-field"></div><div><label class="input-label">所在縣市</label><input type="text" id="vCity" placeholder="例: 台北" class="input-field"></div><div><label class="input-label">所屬起點 (出發辦公室)</label><select id="vOffice" class="input-field"><option value="新北">新北辦公室</option><option value="台中">台中辦公室</option></select></div><div><label class="input-label">預設單趟費用</label><input type="number" id="vCost" placeholder="金額 ($)" class="input-field"></div></div><div class="flex gap-2 mt-4"><button onclick="saveVendor(event)" class="btn btn-success"><i class="fas fa-save mr-1"></i> 儲存資料</button><button onclick="resetAdminForm()" class="btn btn-outline hidden" id="cancelEditBtn">取消編輯</button></div></div>
-        <div class="card shadow-md"><div class="flex flex-wrap justify-between items-center mb-4 gap-2"><h2 class="text-lg font-bold text-gray-700">現有行程設定清單 (<span id="adminVendorCount">0</span> 筆)</h2><div class="flex gap-2 items-center"><input type="text" id="adminVendorSearch" placeholder="搜尋廠商或縣市..." class="input-field text-sm py-1 w-48" oninput="renderAdminTable()"><button onclick="resetToDefaultVendors()" class="btn btn-outline text-xs text-red-500 border-red-200 hover:bg-red-50 whitespace-nowrap" title="這會清除您所有的修改"><i class="fas fa-undo mr-1"></i>還原預設廠商</button></div></div><div class="overflow-x-auto border border-gray-200 rounded" style="max-height: 50vh;"><table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-gray-200 shadow-sm z-10"><tr class="text-gray-600 text-sm"><th class="p-3 border-b">廠商名稱</th><th class="p-3 border-b w-28">縣市</th><th class="p-3 border-b w-32">出發辦公室</th><th class="p-3 border-b w-24">費用</th><th class="p-3 border-b w-32 text-center">操作</th></tr></thead><tbody id="adminTableBody" class="bg-white"></tbody></table></div></div>
+        
+        <div class="card shadow-md mb-6 border-l-4 border-indigo-500">
+            <h2 class="text-lg font-bold mb-4 text-gray-700"><i class="fas fa-users text-blue-500 mr-2"></i>預設申請人名單管理</h2>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="adminNewApplicant" placeholder="輸入新人員姓名" class="input-field" onkeypress="if(event.key==='Enter') adminAddApplicant()">
+                <button onclick="adminAddApplicant()" class="btn btn-primary whitespace-nowrap">新增人員</button>
+            </div>
+            <div id="adminApplicantList" class="flex flex-wrap gap-2 p-2 bg-gray-50 rounded border border-gray-200 min-h-[50px]"></div>
+        </div>
+
+        <div class="card shadow-md mb-6 border-l-4 border-amber-500">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-lg font-bold text-gray-700"><i class="fas fa-map-marker-alt text-amber-500 mr-2"></i>2公里內相鄰廠商群組管理</h2>
+                <button onclick="resetToDefaultExclusions()" class="btn btn-outline text-xs text-red-500 border-red-200 hover:bg-red-50">
+                    <i class="fas fa-undo mr-1"></i>還原預設群組
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mb-3">輸入廠商名稱關鍵字（以逗號「,」或頓號「、」分隔，例如：<code class="bg-gray-100 px-1">佑順環保、佑順汽車、禾盛</code>），當同一日行程包含同群組內 2 家以上廠商時，將自動扣除重複的加場費。</p>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="newExclusionGroupInput" placeholder="輸入相鄰廠商關鍵字，以逗號或頓號分隔 (至少2家)" class="input-field" onkeypress="if(event.key==='Enter') addExclusionGroup()">
+                <button onclick="addExclusionGroup()" class="btn btn-warning whitespace-nowrap"><i class="fas fa-plus mr-1"></i>新增相鄰群組</button>
+            </div>
+            <div id="adminExclusionList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-3 bg-gray-50 rounded border border-gray-200 max-h-60 overflow-y-auto"></div>
+        </div>
+
+        <div class="card border-l-4 border-green-500 shadow-md">
+            <h2 class="text-lg font-bold mb-4 text-gray-700" id="adminFormTitle">新增行程廠商</h2>
+            <input type="hidden" id="editIndex" value="-1">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="input-label">廠商名稱</label>
+                    <input type="text" id="vName" placeholder="例: 某某環保公司" class="input-field">
+                </div>
+                <div>
+                    <label class="input-label">所在縣市</label>
+                    <input type="text" id="vCity" placeholder="例: 台北" class="input-field">
+                </div>
+                <div>
+                    <label class="input-label">所屬起點 (出發辦公室)</label>
+                    <select id="vOffice" class="input-field">
+                        <option value="新北">新北辦公室</option>
+                        <option value="台中">台中辦公室</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="input-label">預設單趟費用</label>
+                    <input type="number" id="vCost" placeholder="金額 ($)" class="input-field">
+                </div>
+            </div>
+            <div class="flex gap-2 mt-4">
+                <button onclick="saveVendor(event)" class="btn btn-success"><i class="fas fa-save mr-1"></i> 儲存資料</button>
+                <button onclick="resetAdminForm()" class="btn btn-outline hidden" id="cancelEditBtn">取消編輯</button>
+            </div>
+        </div>
+
+        <div class="card shadow-md">
+            <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+                <h2 class="text-lg font-bold text-gray-700">現有行程設定清單 (<span id="adminVendorCount">0</span> 筆)</h2>
+                <div class="flex gap-2 items-center">
+                    <input type="text" id="adminVendorSearch" placeholder="搜尋廠商或縣市..." class="input-field text-sm py-1 w-48" oninput="renderAdminTable()">
+                    <button onclick="resetToDefaultVendors()" class="btn btn-outline text-xs text-red-500 border-red-200 hover:bg-red-50 whitespace-nowrap" title="這會清除您所有的修改">
+                        <i class="fas fa-undo mr-1"></i>還原預設廠商
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto border border-gray-200 rounded" style="max-height: 50vh;">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-gray-200 shadow-sm z-10">
+                        <tr class="text-gray-600 text-sm">
+                            <th class="p-3 border-b">廠商名稱</th>
+                            <th class="p-3 border-b w-28">縣市</th>
+                            <th class="p-3 border-b w-32">出發辦公室</th>
+                            <th class="p-3 border-b w-24">費用</th>
+                            <th class="p-3 border-b w-32 text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody" class="bg-white"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    // --- 1. 預設資料庫 ---
+    // --- 1. 預設資料庫 (Vendors / Applicants / Exclusions) ---
     const defaultVendorsDB = [
-        // (省略超長陣列，維持與原代碼完全相同，您可以直接將原本的 defaultVendorsDB 貼回這裡)
-        // 為了避免洗版，這裡僅示範，請將原先 1.0.2 的陣列直接放在這。
         { "name": "岏宬廢棄物回收有限公司", "city": "宜蘭", "office": "新北", "cost": 1300 },
         { "name": "宏泰清除股份有限公司", "city": "宜蘭", "office": "新北", "cost": 1300 },
         { "name": "源益企業社", "city": "宜蘭", "office": "新北", "cost": 1300 },
@@ -491,6 +518,29 @@
     let applicantsDB = JSON.parse(localStorage.getItem('applicantsDB')) || [...defaultApplicantsDB];
     let exclusionGroups = JSON.parse(localStorage.getItem('exclusionGroupsDB')) || JSON.parse(JSON.stringify(defaultExclusionGroups));
 
+    // 修復: 確保舊版快取的資料能自動同步新的修改，避免用戶更新程式後沒讀到新規則
+    (function syncVersionUpdates() {
+        if (!vendorsDB.some(v => v.name === "艾沙國際有限公司")) {
+            vendorsDB.unshift({ "name": "艾沙國際有限公司", "city": "桃園市", "office": "新北", "cost": 650 });
+            localStorage.setItem('vendorsDB', JSON.stringify(vendorsDB));
+        }
+        if (!applicantsDB.includes("張浩熏")) {
+            applicantsDB.push("張浩熏");
+            localStorage.setItem('applicantsDB', JSON.stringify(applicantsDB));
+        }
+        let updatedExclusions = false;
+        exclusionGroups = exclusionGroups.map(group => {
+            if (Array.isArray(group) && group.includes("佑順環保") && group.includes("禾盛") && !group.includes("佑順汽車")) {
+                updatedExclusions = true;
+                return ["佑順環保", "佑順汽車", "禾盛"];
+            }
+            return group;
+        });
+        if (updatedExclusions) {
+            localStorage.setItem('exclusionGroupsDB', JSON.stringify(exclusionGroups));
+        }
+    })();
+
     let applicants = [];
     let applicantDocFeeEnabled = {}; 
     let isRestoringState = false;
@@ -543,7 +593,7 @@
         });
     }
 
-    // --- 新增：快捷分攤全域操作 ---
+    // --- 快捷分攤全域操作 ---
     function quickSetModes(dayId, baseMode, extraMode) {
         const tableBody = document.getElementById(`${dayId}-applicantTable`);
         if(!tableBody) return;
@@ -578,7 +628,7 @@
         recalculateAll();
     }
 
-    // --- 新增 / 替換：Excel 多分頁匯出 ---
+    // --- Excel 多分頁匯出 ---
     function exportToExcel() {
         if (typeof XLSX === 'undefined') {
             alert("Excel 匯出引擎載入中，請確保網路連線或稍後再試。");
@@ -588,7 +638,7 @@
         const origin = document.getElementById('originOffice').value;
         const projName = document.getElementById('currentProjectName').value.trim() || '廢車組差旅費試算';
         
-        // 【分頁1】總表與簽核單
+        // 【分頁1】總表
         const wsSummaryData = [
             ["廢車組專案人員差旅費用申報明細表", "", "", "", ""],
             [`專案名稱：${projName}`, "", `出發辦公室：${origin}辦公室`, "", `製表日期：${new Date().toISOString().split('T')[0]}`],
@@ -708,7 +758,8 @@
                 totalTravel += parseInt(r[4].replace(/[^\d]/g, '')) || 0;
             });
             
-            const isDocChecked = applicantDocFeeEnabled[app] || false;
+            // 修復: 確保讀取 boolean 狀態，若 undefined 則視同 true (與 UI 計算同步)
+            const isDocChecked = applicantDocFeeEnabled[app] !== false;
             const docFee = isDocChecked ? (parseInt(document.getElementById('docFeeInput').value) || 0) : 0;
             
             wsIndData.push(["", "", "", "差旅費小計", `$${totalTravel.toLocaleString()}`]);
@@ -814,12 +865,11 @@
         const globalCarpool = parseInt(document.getElementById('carpoolCount').value) || 2;
         const activeApps = specificApplicants ? specificApplicants : [...applicants];
 
-        // --- 更新版 Day HTML 加入快捷分攤工具列 ---
         const dayHTML = `
             <div id="${dayId}" class="day-wrapper shadow-sm" data-active-applicants='${JSON.stringify(activeApps)}'>
                 <div class="day-header">
                     <div class="flex items-center gap-2">
-                        <i class="fas fa-calendar-day text-blue-600 no-print"></i>
+                        <i class="fas fa-calendar-day text-blue-600"></i>
                         <input type="date" class="input-field w-auto font-bold text-blue-900 day-date-input py-1" value="${defaultDate}" onchange="recalculateAll()">
                     </div>
                     <div class="flex items-center gap-3">
@@ -828,20 +878,19 @@
                             <input type="number" class="w-12 text-center font-bold text-blue-700 outline-none day-carpool-input" value="${globalCarpool}" min="1" onchange="onDayCarpoolManualChange('${dayId}')">
                             <span>人</span>
                         </div>
-                        <button onclick="removeDay('${dayId}')" class="btn btn-outline py-1 px-2.5 text-red-500 hover:text-white hover:bg-red-500 border-red-200 no-print" title="刪除此日"><i class="fas fa-trash-alt"></i></button>
+                        <button onclick="removeDay('${dayId}')" class="btn btn-outline py-1 px-2.5 text-red-500 hover:text-white hover:bg-red-500 border-red-200" title="刪除此日"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </div>
                 <div class="day-body">
-                    <div class="mb-3 pb-2 border-b border-gray-100 flex flex-wrap items-center gap-2 no-print">
+                    <div class="mb-3 pb-2 border-b border-gray-100 flex flex-wrap items-center gap-2">
                         <span class="text-xs font-bold text-gray-500"><i class="fas fa-user-check mr-1"></i>當日出勤人員：</span>
                         <div id="${dayId}-dayApplicantsBar" class="flex flex-wrap gap-1.5"></div>
                     </div>
 
                     <div class="vendor-list-container space-y-2 mb-4" id="${dayId}-vendors"></div>
-                    <button onclick="addVendorRow('${dayId}')" class="btn btn-primary w-full py-2 mb-4 text-sm border-2 border-dashed border-blue-300 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 shadow-none no-print"><i class="fas fa-plus mr-1"></i> 新增當日廠商</button>
+                    <button onclick="addVendorRow('${dayId}')" class="btn btn-primary w-full py-2 mb-4 text-sm border-2 border-dashed border-blue-300 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 shadow-none"><i class="fas fa-plus mr-1"></i> 新增當日廠商</button>
                     
-                    <!-- 新增的快捷分攤設定列 -->
-                    <div class="bg-indigo-50 p-2 rounded-t border border-indigo-100 flex flex-wrap justify-between items-center gap-2 border-b-0 no-print">
+                    <div class="bg-indigo-50 p-2 rounded-t border border-indigo-100 flex flex-wrap justify-between items-center gap-2 border-b-0">
                         <div class="text-xs font-bold text-indigo-700 flex items-center">
                             <i class="fas fa-bolt mr-1"></i>快捷分攤設定
                         </div>
@@ -972,7 +1021,7 @@
                 <div class="w-full sm:w-20 text-center">
                      <span class="text-xs cross-city-badge px-2 py-1 rounded-full bg-gray-200 text-gray-400 block w-full text-center">-</span>
                 </div>
-                <button onclick="removeVendorRow('${rowId}')" class="text-gray-400 hover:text-red-500 px-2 transition-colors no-print" tabindex="-1" title="移除廠商"><i class="fas fa-trash"></i></button>
+                <button onclick="removeVendorRow('${rowId}')" class="text-gray-400 hover:text-red-500 px-2 transition-colors" tabindex="-1" title="移除廠商"><i class="fas fa-trash"></i></button>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', rowHTML);
@@ -1119,12 +1168,12 @@
                 const tr = document.createElement('tr');
                 tr.className = "border-b border-gray-100 last:border-0 hover:bg-gray-50";
                 tr.innerHTML = `
-                    <td class="p-3 font-medium text-gray-800"><i class="fas fa-user text-blue-400 mr-2 no-print"></i>${app}</td>
+                    <td class="p-3 font-medium text-gray-800"><i class="fas fa-user text-blue-400 mr-2"></i>${app}</td>
                     <td class="p-3 text-center text-gray-600">${applicantDaysWorked[app] || 0} 天</td>
                     <td class="p-3 text-right text-gray-700 font-medium">$${travelTotal.toLocaleString()}</td>
                     <td class="p-3 text-right text-gray-600">
                         <label class="inline-flex items-center cursor-pointer justify-end">
-                            <input type="checkbox" class="mr-1.5 rounded text-indigo-600 no-print" ${isDocChecked ? 'checked' : ''} onchange="toggleApplicantDocFee('${app}', this.checked)">
+                            <input type="checkbox" class="mr-1.5 rounded text-indigo-600" ${isDocChecked ? 'checked' : ''} onchange="toggleApplicantDocFee('${app}', this.checked)">
                             <span>+$${appliedDocFee.toLocaleString()}</span>
                         </label>
                     </td>
@@ -1168,7 +1217,6 @@
         }
         const carpoolCount = Math.max(1, parseInt(dayCarpoolInput.value) || 1);
 
-        // --- 動態更新駕駛下拉選單 ---
         const driverSelect = document.getElementById(`${dayId}-driverSelect`);
         if (driverSelect) {
             const currentVal = driverSelect.value;
@@ -1339,7 +1387,622 @@
 
         return { amounts: dayResult, hasVendors: selectedVendors.length > 0 };
     }
-    
+
+    function toggleSmartParsePanel() {
+        const body = document.getElementById('smartParseBody');
+        const icon = document.getElementById('smartParseToggleIcon');
+        const txt = document.getElementById('smartParseToggleText');
+        if (body.classList.contains('hidden')) {
+            body.classList.remove('hidden');
+            icon.className = 'fas fa-chevron-up ml-1';
+            txt.innerText = '收合工具';
+        } else {
+            body.classList.add('hidden');
+            icon.className = 'fas fa-chevron-down ml-1';
+            txt.innerText = '展開工具';
+        }
+    }
+
+    function fillSampleParseText() {
+        const sample = `10/19 張榮村、林哲生：信捷、宏泰、萬新\n10/20 張榮村、張浩熏：發輝、炬田、建新、大輝\n10/21 林哲生、于鈞杰：艾沙、瑞明、三億企業社`;
+        document.getElementById('smartParseTextarea').value = sample;
+    }
+
+    function normalizeDateString(rawDateStr) {
+        const currentYear = new Date().getFullYear();
+        let cleaned = rawDateStr.replace(/[年月]/g, '/').replace(/日/g, '').replace(/-/g, '/').trim();
+        let parts = cleaned.split('/').filter(Boolean);
+        if (parts.length === 2) {
+            let m = parts[0].padStart(2, '0');
+            let d = parts[1].padStart(2, '0');
+            return `${currentYear}-${m}-${d}`;
+        } else if (parts.length === 3) {
+            let y = parts[0].length === 2 ? '20' + parts[0] : (parts[0].length === 3 ? String(parseInt(parts[0]) + 1911) : parts[0]);
+            let m = parts[1].padStart(2, '0');
+            let d = parts[2].padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+        return new Date().toISOString().split('T')[0];
+    }
+
+    function parseScheduleText(clearExisting = false) {
+        const text = document.getElementById('smartParseTextarea').value.trim();
+        if (!text) {
+            alert("請先貼上行程文字！");
+            return;
+        }
+
+        const origin = document.getElementById('originOffice').value;
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        let parsedDays = [];
+        let currentDayObj = null;
+
+        const dateRegex = /(\d{2,4}[\/\-年])?\d{1,2}[\/\-月]\d{1,2}日?/;
+
+        lines.forEach(line => {
+            const dateMatch = line.match(dateRegex);
+            if (dateMatch) {
+                const dateStr = normalizeDateString(dateMatch[0]);
+                currentDayObj = { date: dateStr, applicants: [], vendors: [] };
+                parsedDays.push(currentDayObj);
+                line = line.replace(dateMatch[0], '').trim();
+            } else if (!currentDayObj) {
+                currentDayObj = { date: new Date().toISOString().split('T')[0], applicants: [], vendors: [] };
+                parsedDays.push(currentDayObj);
+            }
+
+            const tokens = line.split(/[：:、，,;\s｜|\t]+/).map(t => t.trim()).filter(Boolean);
+            tokens.forEach(token => {
+                const matchedApp = applicantsDB.find(a => a === token || token.includes(a));
+                if (matchedApp) {
+                    if (!currentDayObj.applicants.includes(matchedApp)) {
+                        currentDayObj.applicants.push(matchedApp);
+                    }
+                    addApplicant(matchedApp, true);
+                    return;
+                }
+                const matchedVendor = matchVendorByKeyword(token, origin);
+                if (matchedVendor) {
+                    currentDayObj.vendors.push(matchedVendor.name);
+                }
+            });
+        });
+
+        parsedDays = parsedDays.filter(d => d.vendors.length > 0 || d.applicants.length > 0);
+
+        if (parsedDays.length === 0) {
+            alert("未能從文字中辨識出有效的日期或廠商名稱，請確認格式或廠商關鍵字！");
+            return;
+        }
+
+        if (clearExisting) {
+            document.getElementById('daysContainer').innerHTML = '';
+        }
+
+        parsedDays.forEach(d => {
+            const dayApps = d.applicants.length > 0 ? d.applicants : [...applicants];
+            const dayId = addDay(d.date, dayApps, true);
+            if (d.vendors.length > 0) {
+                d.vendors.forEach(vName => addVendorRow(dayId, vName, true));
+            } else {
+                addVendorRow(dayId, null, true);
+            }
+        });
+
+        recalculateAll();
+
+        const msgEl = document.getElementById('parseResultMsg');
+        msgEl.className = "mt-2 text-xs text-green-700 bg-green-50 p-2 rounded border border-green-200 block";
+        msgEl.innerHTML = `<i class="fas fa-check-circle mr-1"></i>成功解析並匯入 <strong>${parsedDays.length}</strong> 天行程！`;
+    }
+
+    function serializeWorkspaceState() {
+        const daysData = [];
+        document.querySelectorAll('.day-wrapper').forEach(day => {
+            const dayId = day.id;
+            const dateVal = day.querySelector('.day-date-input').value;
+            const carpoolVal = parseInt(day.querySelector('.day-carpool-input').value) || 2;
+            const activeApps = JSON.parse(day.dataset.activeApplicants || '[]');
+            
+            const vendors = [];
+            day.querySelectorAll('.vendor-input').forEach(inp => {
+                vendors.push(inp.value);
+            });
+
+            const modes = {};
+            day.querySelectorAll(`#${dayId}-applicantTable tr`).forEach(tr => {
+                const name = tr.getAttribute('data-name');
+                modes[name] = {
+                    base: tr.querySelector('.base-mode-select').value,
+                    extra: tr.querySelector('.extra-mode-select').value
+                };
+            });
+
+            daysData.push({
+                date: dateVal,
+                carpoolCount: carpoolVal,
+                activeApplicants: activeApps,
+                vendors: vendors,
+                modes: modes
+            });
+        });
+
+        return {
+            projectName: document.getElementById('currentProjectName').value,
+            originOffice: document.getElementById('originOffice').value,
+            carpoolCount: parseInt(document.getElementById('carpoolCount').value) || 2,
+            autoSyncCarpool: document.getElementById('autoSyncCarpool').checked,
+            docFee: parseInt(document.getElementById('docFeeInput').value) || 500,
+            applicants: [...applicants],
+            applicantDocFeeEnabled: {...applicantDocFeeEnabled},
+            days: daysData,
+            savedAt: new Date().toLocaleString()
+        };
+    }
+
+    function restoreWorkspaceState(state) {
+        isRestoringState = true;
+        try {
+            document.getElementById('currentProjectName').value = state.projectName || '';
+            document.getElementById('originOffice').value = state.originOffice || '新北';
+            updateVendorList(state.originOffice || '新北');
+
+            document.getElementById('carpoolCount').value = state.carpoolCount || 2;
+            document.getElementById('autoSyncCarpool').checked = state.autoSyncCarpool !== undefined ? state.autoSyncCarpool : true;
+            document.getElementById('docFeeInput').value = state.docFee !== undefined ? state.docFee : 500;
+
+            applicants = Array.isArray(state.applicants) ? [...state.applicants] : [];
+            applicantDocFeeEnabled = state.applicantDocFeeEnabled || {};
+            renderApplicants();
+
+            const container = document.getElementById('daysContainer');
+            container.innerHTML = '';
+
+            if (Array.isArray(state.days) && state.days.length > 0) {
+                state.days.forEach(d => {
+                    const dayId = addDay(d.date, d.activeApplicants || [...applicants], true);
+                    const dayEl = document.getElementById(dayId);
+                    dayEl.querySelector('.day-carpool-input').value = d.carpoolCount || 2;
+
+                    if (Array.isArray(d.vendors) && d.vendors.length > 0) {
+                        d.vendors.forEach(vName => addVendorRow(dayId, vName, true));
+                    } else {
+                        addVendorRow(dayId, null, true);
+                    }
+
+                    calculateDay(dayId);
+                    if (d.modes) {
+                        for (const [appName, modeObj] of Object.entries(d.modes)) {
+                            const row = dayEl.querySelector(`#${dayId}-applicantTable tr[data-name="${appName}"]`);
+                            if (row) {
+                                if (modeObj.base) row.querySelector('.base-mode-select').value = modeObj.base;
+                                if (modeObj.extra) row.querySelector('.extra-mode-select').value = modeObj.extra;
+                            }
+                        }
+                    }
+                });
+            } else {
+                addDay();
+            }
+        } finally {
+            isRestoringState = false;
+            recalculateAll();
+        }
+    }
+
+    function autoSaveWorkingState() {
+        if (isRestoringState) return;
+        const state = serializeWorkspaceState();
+        localStorage.setItem('wasteCarWorkingSession_v1', JSON.stringify(state));
+        const indicator = document.getElementById('autoSaveIndicator');
+        if (indicator) {
+            indicator.innerHTML = '<i class="fas fa-check-circle mr-1"></i>已自動暫存';
+        }
+    }
+
+    function clearCurrentWorkspace() {
+        if (!confirm("確定要清空目前畫面上的所有行程與申請人，重新開始嗎？")) return;
+        document.getElementById('currentProjectName').value = '';
+        applicants = [];
+        applicantDocFeeEnabled = {};
+        renderApplicants();
+        document.getElementById('daysContainer').innerHTML = '';
+        addDay();
+        recalculateAll();
+    }
+
+    function getSavedDrafts() {
+        try {
+            return JSON.parse(localStorage.getItem('wasteCarDrafts_v1')) || [];
+        } catch(e) { return []; }
+    }
+
+    function updateDraftBadge() {
+        const drafts = getSavedDrafts();
+        document.getElementById('draftCountBadge').innerText = drafts.length;
+    }
+
+    function saveCurrentAsDraft() {
+        let name = document.getElementById('currentProjectName').value.trim();
+        if (!name) {
+            name = prompt("請輸入此筆試算草稿的名稱：", `差旅試算_${new Date().toISOString().split('T')[0]}`);
+            if (!name) return;
+            document.getElementById('currentProjectName').value = name;
+        }
+        const drafts = getSavedDrafts();
+        const state = serializeWorkspaceState();
+        state.projectName = name;
+        state.grandTotal = document.getElementById('grandTotalDisplay').innerText;
+
+        drafts.unshift(state);
+        localStorage.setItem('wasteCarDrafts_v1', JSON.stringify(drafts));
+        updateDraftBadge();
+        alert(`已成功儲存草稿：「${name}」！可隨時由右上角「專案草稿」載入。`);
+    }
+
+    function openDraftModal() {
+        document.getElementById('modalDraftNameInput').value = document.getElementById('currentProjectName').value;
+        renderDraftList();
+        document.getElementById('draftModal').classList.remove('hidden');
+    }
+
+    function closeDraftModal() {
+        document.getElementById('draftModal').classList.add('hidden');
+    }
+
+    function saveCurrentAsDraftFromModal() {
+        const name = document.getElementById('modalDraftNameInput').value.trim() || `差旅試算_${new Date().toLocaleDateString()}`;
+        document.getElementById('currentProjectName').value = name;
+        const drafts = getSavedDrafts();
+        const state = serializeWorkspaceState();
+        state.projectName = name;
+        state.grandTotal = document.getElementById('grandTotalDisplay').innerText;
+        drafts.unshift(state);
+        localStorage.setItem('wasteCarDrafts_v1', JSON.stringify(drafts));
+        updateDraftBadge();
+        renderDraftList();
+    }
+
+    function renderDraftList() {
+        const container = document.getElementById('draftListContainer');
+        const drafts = getSavedDrafts();
+        container.innerHTML = '';
+
+        if (drafts.length === 0) {
+            container.innerHTML = '<div class="text-center py-8 text-gray-400 text-sm">目前尚無儲存的歷史草稿</div>';
+            return;
+        }
+
+        drafts.forEach((d, idx) => {
+            const div = document.createElement('div');
+            div.className = "p-3 border border-gray-200 rounded-lg hover:bg-indigo-50/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2";
+            div.innerHTML = `
+                <div>
+                    <div class="font-bold text-gray-800 text-sm">${d.projectName || '未命名專案'} <span class="ml-2 text-xs font-normal px-2 py-0.5 bg-blue-100 text-blue-700 rounded">${d.originOffice}辦公室</span></div>
+                    <div class="text-xs text-gray-500 mt-0.5">
+                        人員：${(d.applicants || []).join('、') || '無'} ｜ 天數：${(d.days || []).length} 天 ｜ 總額：<strong class="text-indigo-600">${d.grandTotal || '$0'}</strong>
+                    </div>
+                    <div class="text-[11px] text-gray-400">儲存時間：${d.savedAt || '-'}</div>
+                </div>
+                <div class="flex gap-1.5 self-end sm:self-center">
+                    <button onclick="loadDraft(${idx})" class="btn btn-primary text-xs py-1 px-2.5"><i class="fas fa-upload mr-1"></i>載入</button>
+                    <button onclick="deleteDraft(${idx})" class="btn btn-outline text-xs py-1 px-2.5 text-red-500 border-red-200 hover:bg-red-50"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function loadDraft(idx) {
+        const drafts = getSavedDrafts();
+        if (!drafts[idx]) return;
+        if (confirm(`確定要載入草稿「${drafts[idx].projectName}」嗎？這將覆蓋目前畫面上的內容。`)) {
+            restoreWorkspaceState(drafts[idx]);
+            closeDraftModal();
+        }
+    }
+
+    function deleteDraft(idx) {
+        const drafts = getSavedDrafts();
+        if (!drafts[idx]) return;
+        if (confirm(`確定要刪除草稿「${drafts[idx].projectName}」嗎？`)) {
+            drafts.splice(idx, 1);
+            localStorage.setItem('wasteCarDrafts_v1', JSON.stringify(drafts));
+            updateDraftBadge();
+            renderDraftList();
+        }
+    }
+
+    function showLogin() {
+        document.getElementById('loginModal').classList.remove('hidden');
+        document.getElementById('adminUser').value = '';
+        document.getElementById('adminPass').value = '';
+        document.getElementById('loginError').classList.add('hidden');
+        document.getElementById('adminUser').focus();
+    }
+
+    function hideLogin() {
+        document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    function handleLoginEnter(e) {
+        if (e.key === 'Enter') handleLogin();
+    }
+
+    function handleLogin() {
+        const user = document.getElementById('adminUser').value;
+        const pass = document.getElementById('adminPass').value;
+        
+        if (user === 'admin' && pass === '28207426') {
+            hideLogin();
+            openAdmin();
+        } else {
+            document.getElementById('loginError').classList.remove('hidden');
+        }
+    }
+
+    function openAdmin() {
+        document.getElementById('adminPanel').classList.remove('hidden');
+        renderAdminTable();
+        renderAdminApplicants();
+        renderAdminExclusions();
+    }
+
+    function closeAdmin() {
+        document.getElementById('adminPanel').classList.add('hidden');
+        onOfficeChange();
+        recalculateAll();
+    }
+
+    function renderAdminExclusions() {
+        const container = document.getElementById('adminExclusionList');
+        container.innerHTML = '';
+        exclusionGroups.forEach((group, idx) => {
+            const div = document.createElement('div');
+            div.className = "flex justify-between items-center bg-white p-2 rounded border border-amber-200 shadow-sm text-xs";
+            div.innerHTML = `
+                <div class="font-medium text-gray-700 truncate pr-2">
+                    <span class="text-amber-600 font-bold mr-1">#${idx + 1}</span> ${group.join('、')}
+                </div>
+                <button onclick="deleteExclusionGroup(${idx})" class="text-red-400 hover:text-red-600 px-1"><i class="fas fa-times"></i></button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function addExclusionGroup() {
+        const input = document.getElementById('newExclusionGroupInput');
+        const raw = input.value.trim();
+        if (!raw) return;
+        const keywords = raw.split(/[,，、\s]+/).map(k => k.trim()).filter(Boolean);
+        if (keywords.length < 2) {
+            alert("相鄰群組至少需包含 2 個以上的廠商關鍵字！");
+            return;
+        }
+        exclusionGroups.unshift(keywords);
+        localStorage.setItem('exclusionGroupsDB', JSON.stringify(exclusionGroups));
+        input.value = '';
+        renderAdminExclusions();
+    }
+
+    function deleteExclusionGroup(idx) {
+        if (confirm(`確定要刪除相鄰群組「${exclusionGroups[idx].join('、')}」嗎？`)) {
+            exclusionGroups.splice(idx, 1);
+            localStorage.setItem('exclusionGroupsDB', JSON.stringify(exclusionGroups));
+            renderAdminExclusions();
+        }
+    }
+
+    function resetToDefaultExclusions() {
+        if (confirm("確定要將 2 公里內相鄰廠商群組還原為系統預設值嗎？")) {
+            exclusionGroups = JSON.parse(JSON.stringify(defaultExclusionGroups));
+            localStorage.setItem('exclusionGroupsDB', JSON.stringify(exclusionGroups));
+            renderAdminExclusions();
+        }
+    }
+
+    function renderAdminTable() {
+        const tbody = document.getElementById('adminTableBody');
+        const searchKey = (document.getElementById('adminVendorSearch')?.value || '').trim();
+        tbody.innerHTML = '';
+        document.getElementById('adminVendorCount').innerText = vendorsDB.length;
+        
+        vendorsDB.forEach((v, idx) => {
+            if (searchKey && !v.name.includes(searchKey) && !v.city.includes(searchKey) && !v.office.includes(searchKey)) {
+                return;
+            }
+            const tr = document.createElement('tr');
+            tr.className = "border-b border-gray-100 hover:bg-gray-50 transition-colors";
+            tr.innerHTML = `
+                <td class="p-3 text-sm text-gray-800">${v.name}</td>
+                <td class="p-3 text-sm text-gray-600">${v.city}</td>
+                <td class="p-3"><span class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs border border-blue-100">${v.office}</span></td>
+                <td class="p-3 text-sm font-bold text-gray-700">$${v.cost}</td>
+                <td class="p-3 text-center space-x-1">
+                    <button onclick="editVendor(${idx})" class="btn btn-outline py-1 px-2 text-xs text-blue-500 hover:bg-blue-50 hover:text-blue-700 border-blue-200"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteVendor(${idx})" class="btn btn-outline py-1 px-2 text-xs text-red-500 hover:bg-red-50 hover:text-red-700 border-red-200"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function saveVendor(event) {
+        const name = document.getElementById('vName').value.trim();
+        const city = document.getElementById('vCity').value.trim();
+        const office = document.getElementById('vOffice').value;
+        const cost = parseInt(document.getElementById('vCost').value);
+        const editIdx = parseInt(document.getElementById('editIndex').value);
+
+        if (!name || !city || isNaN(cost)) {
+            alert("請填寫完整的名稱、縣市與費用！");
+            return;
+        }
+
+        const newVendor = { name, city, office, cost };
+
+        if (editIdx === -1) {
+            if (vendorsDB.some(v => v.name === name)) {
+                if(!confirm("系統內已有同名廠商，確定要重複新增嗎？")) return;
+            }
+            vendorsDB.unshift(newVendor); 
+        } else {
+            vendorsDB[editIdx] = newVendor;
+        }
+
+        saveToLocal();
+        resetAdminForm();
+        renderAdminTable();
+        if (event && event.currentTarget) {
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check mr-1"></i> 已儲存';
+            btn.classList.add('bg-green-600');
+            setTimeout(() => { btn.innerHTML = originalText; btn.classList.remove('bg-green-600'); }, 1500);
+        }
+    }
+
+    function editVendor(idx) {
+        const v = vendorsDB[idx];
+        document.getElementById('vName').value = v.name;
+        document.getElementById('vCity').value = v.city;
+        document.getElementById('vOffice').value = v.office;
+        document.getElementById('vCost').value = v.cost;
+        
+        document.getElementById('editIndex').value = idx;
+        document.getElementById('adminFormTitle').innerHTML = "<i class='fas fa-edit text-blue-500 mr-2'></i>編輯行程廠商";
+        document.getElementById('cancelEditBtn').classList.remove('hidden');
+        
+        document.getElementById('adminPanel').scrollTo({ top: 300, behavior: 'smooth' });
+        const formCard = document.getElementById('adminFormTitle').parentElement;
+        formCard.classList.remove('border-green-500');
+        formCard.classList.add('border-blue-500', 'ring-2', 'ring-blue-200');
+        setTimeout(() => formCard.classList.remove('ring-2', 'ring-blue-200'), 1000);
+    }
+
+    function deleteVendor(idx) {
+        if (confirm(`確定要刪除「${vendorsDB[idx].name}」的資料嗎？`)) {
+            vendorsDB.splice(idx, 1);
+            saveToLocal();
+            renderAdminTable();
+        }
+    }
+
+    function resetAdminForm() {
+        document.getElementById('vName').value = '';
+        document.getElementById('vCity').value = '';
+        document.getElementById('vOffice').value = '新北';
+        document.getElementById('vCost').value = '';
+        document.getElementById('editIndex').value = '-1';
+        document.getElementById('adminFormTitle').innerHTML = "新增行程廠商";
+        document.getElementById('cancelEditBtn').classList.add('hidden');
+        
+        const formCard = document.getElementById('adminFormTitle').parentElement;
+        formCard.classList.add('border-green-500');
+        formCard.classList.remove('border-blue-500');
+    }
+
+    function saveToLocal() {
+        localStorage.setItem('vendorsDB', JSON.stringify(vendorsDB));
+    }
+
+    function resetToDefaultVendors() {
+        if (confirm("注意：這將會清除您所有手動新增、編輯的廠商資料，並完全恢復為系統原始名單。\n\n確定要繼續嗎？")) {
+            vendorsDB = JSON.parse(JSON.stringify(defaultVendorsDB));
+            saveToLocal();
+            renderAdminTable();
+        }
+    }
+
+    function renderAdminApplicants() {
+        const container = document.getElementById('adminApplicantList');
+        container.innerHTML = '';
+        applicantsDB.forEach((name, idx) => {
+            const tag = document.createElement('div');
+            tag.className = 'applicant-tag bg-white shadow-sm border border-gray-200';
+            tag.innerHTML = `<span><i class="fas fa-user mr-1 text-blue-400"></i>${name}</span> <button onclick="adminDeleteApplicant(${idx})" class="ml-2 text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>`;
+            container.appendChild(tag);
+        });
+        updateApplicantDatalist();
+    }
+
+    function adminAddApplicant() {
+        const name = document.getElementById('adminNewApplicant').value.trim();
+        if(name && !applicantsDB.includes(name)) {
+            applicantsDB.push(name);
+            saveApplicantsToLocal();
+            renderAdminApplicants();
+            document.getElementById('adminNewApplicant').value = '';
+        } else if (applicantsDB.includes(name)) {
+            alert("此人員已在名單中！");
+        } else {
+            alert("請輸入人員姓名！");
+        }
+    }
+
+    function adminDeleteApplicant(idx) {
+        if(confirm(`確定要將「${applicantsDB[idx]}」從預設名單中刪除嗎？`)) {
+            applicantsDB.splice(idx, 1);
+            saveApplicantsToLocal();
+            renderAdminApplicants();
+        }
+    }
+
+    function saveApplicantsToLocal() {
+        localStorage.setItem('applicantsDB', JSON.stringify(applicantsDB));
+    }
+
+    function exportSystemConfigJSON() {
+        const config = {
+            version: "1.2",
+            exportedAt: new Date().toISOString(),
+            vendorsDB: vendorsDB,
+            applicantsDB: applicantsDB,
+            exclusionGroups: exclusionGroups
+        };
+        const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `廢車組差旅系統設定檔_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importSystemConfigJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const config = JSON.parse(e.target.result);
+                if (!config.vendorsDB || !Array.isArray(config.vendorsDB)) {
+                    alert("設定檔格式不正確！");
+                    return;
+                }
+                if (confirm(`確定要匯入設定檔嗎？\n包含：${config.vendorsDB.length} 筆廠商、${(config.applicantsDB || []).length} 位人員、${(config.exclusionGroups || []).length} 組相鄰規則。`)) {
+                    vendorsDB = config.vendorsDB;
+                    if (Array.isArray(config.applicantsDB)) applicantsDB = config.applicantsDB;
+                    if (Array.isArray(config.exclusionGroups)) exclusionGroups = config.exclusionGroups;
+
+                    saveToLocal();
+                    saveApplicantsToLocal();
+                    localStorage.setItem('exclusionGroupsDB', JSON.stringify(exclusionGroups));
+
+                    renderAdminTable();
+                    renderAdminApplicants();
+                    renderAdminExclusions();
+                    alert("系統設定匯入成功！");
+                }
+            } catch (err) {
+                alert("讀取 JSON 檔案失敗：" + err.message);
+            } finally {
+                event.target.value = '';
+            }
+        };
+        reader.readAsText(file);
+    }
 </script>
+
 </body>
 </html>
