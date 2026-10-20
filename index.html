@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>廢車組人員差旅費用試算系統 (v1.0)</title>
+    <title>廢車組人員差旅費用試算系統 (v1.0.2)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -95,7 +95,7 @@
     <!-- 網頁標題 (一般檢視) -->
     <div class="mb-6 text-center no-print">
         <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">
-            <i class="fas fa-car-crash text-blue-600 mr-2"></i>廢車組人員差旅費用試算系統 <span class="text-sm font-normal bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full align-middle">v1.0</span>
+            <i class="fas fa-car-crash text-blue-600 mr-2"></i>廢車組人員差旅費用試算系統 <span class="text-sm font-normal bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full align-middle">v1.0.2</span>
         </h1>
         <p class="text-gray-500 text-sm mt-1">智慧行程解析・相鄰加場防呆・草稿管理・報銷單輸出</p>
     </div>
@@ -190,7 +190,7 @@
             <p class="text-xs text-gray-600 mb-2">
                 請貼上包含「<strong>日期</strong>」、「<strong>人員姓名</strong>（選填）」與「<strong>廠商名稱或簡稱</strong>」的文字。系統會自動比對廠商庫、新增申請人並建立對應日期卡片：
             </p>
-            <textarea id="smartParseTextarea" rows="4" class="input-field font-mono text-sm mb-3 bg-amber-50/40" placeholder="範例格式：&#10;10/20 張榮村、林哲生：信捷、宏泰、萬新&#10;10/21 張榮村、張浩熏：發輝、炬田、瑞明&#10;2026-10-22 林哲生：追蹤查核-桃園、三億企業社"></textarea>
+            <textarea id="smartParseTextarea" rows="4" class="input-field font-mono text-sm mb-3 bg-amber-50/40" placeholder="範例格式：&#10;10/20 張榮村、林哲生：信捷、宏泰、萬新&#10;10/21 張榮村、張浩熏：發輝、炬田、艾沙&#10;2026-10-22 林哲生：追蹤查核-桃園、三億企業社"></textarea>
             <div class="flex flex-wrap justify-between items-center gap-2">
                 <button onclick="fillSampleParseText()" class="btn btn-outline text-xs py-1.5">
                     <i class="fas fa-lightbulb text-amber-500 mr-1"></i>載入範例文字測試
@@ -469,6 +469,7 @@
         { "name": "合全環保企業社", "city": "新北", "office": "新北", "cost": 300 },
         { "name": "釧合企業有限公司", "city": "新北", "office": "新北", "cost": 300 },
         { "name": "俊陽伸環保有限公司", "city": "新北", "office": "新北", "cost": 300 },
+        { "name": "艾沙國際有限公司", "city": "桃園市", "office": "新北", "cost": 650 },
         { "name": "家泰有限公司", "city": "桃園", "office": "新北", "cost": 650 },
         { "name": "新公鋼鐵有限公司", "city": "桃園", "office": "新北", "cost": 650 },
         { "name": "三億企業社", "city": "桃園", "office": "新北", "cost": 650 },
@@ -552,10 +553,10 @@
         { "name": "追蹤查核-彰化", "city": "彰化", "office": "台中", "cost": 600 }
     ];
 
-    // (2) 預設申請人名單新增：張浩熏
+    // 預設申請人名單
     const defaultApplicantsDB = ["張榮村", "林哲生", "蔡其祝", "羅斯文", "于鈞杰", "吳銘杰", "張達鈞", "張浩熏"];
 
-    // (1) 2公里內相鄰廠商群組管理修正：#15 佑順環保、佑順汽車、禾盛
+    // 2公里內相鄰廠商群組管理
     const defaultExclusionGroups = [
         ["信捷", "宏泰", "岏宬"],
         ["阿米哥", "上元", "萬新"],
@@ -580,12 +581,21 @@
     let applicantsDB = JSON.parse(localStorage.getItem('applicantsDB')) || [...defaultApplicantsDB];
     let exclusionGroups = JSON.parse(localStorage.getItem('exclusionGroupsDB')) || JSON.parse(JSON.stringify(defaultExclusionGroups));
 
-    // 自動確保舊版快取同步新增「張浩熏」與修正「#15 佑順環保、佑順汽車、禾盛」
+    // 自動確保舊版快取同步新增「艾沙國際有限公司」、「張浩熏」與修正「#15 佑順環保、佑順汽車、禾盛」
     (function syncVersionUpdates() {
+        // 1. 同步新增廠商：艾沙國際有限公司
+        if (!vendorsDB.some(v => v.name === "艾沙國際有限公司")) {
+            vendorsDB.unshift({ "name": "艾沙國際有限公司", "city": "桃園市", "office": "新北", "cost": 650 });
+            localStorage.setItem('vendorsDB', JSON.stringify(vendorsDB));
+        }
+
+        // 2. 同步新增預設申請人：張浩熏
         if (!applicantsDB.includes("張浩熏")) {
             applicantsDB.push("張浩熏");
             localStorage.setItem('applicantsDB', JSON.stringify(applicantsDB));
         }
+
+        // 3. 同步修正 2 公里內相鄰廠商群組 #15
         let updatedExclusions = false;
         exclusionGroups = exclusionGroups.map(group => {
             if (Array.isArray(group) && group.includes("佑順環保") && group.includes("禾盛") && !group.includes("佑順汽車")) {
@@ -633,7 +643,6 @@
 
     function onGlobalCarpoolChange() {
         const globalVal = parseInt(document.getElementById('carpoolCount').value) || 1;
-        // 若未勾選自動依當日人數同步，則更新各日共乘數輸入框
         if (!document.getElementById('autoSyncCarpool').checked) {
             document.querySelectorAll('.day-carpool-input').forEach(inp => {
                 inp.value = globalVal;
@@ -1256,7 +1265,7 @@
     }
 
     function fillSampleParseText() {
-        const sample = `10/19 張榮村、林哲生：信捷、宏泰、萬新\n10/20 張榮村、張浩熏：發輝、炬田、建新、大輝\n10/21 林哲生、于鈞杰：瑞明、鴻岳、三億企業社`;
+        const sample = `10/19 張榮村、林哲生：信捷、宏泰、萬新\n10/20 張榮村、張浩熏：發輝、炬田、建新、大輝\n10/21 林哲生、于鈞杰：艾沙、瑞明、三億企業社`;
         document.getElementById('smartParseTextarea').value = sample;
     }
 
@@ -1921,7 +1930,7 @@
     // 後台設定 JSON 匯出與匯入
     function exportSystemConfigJSON() {
         const config = {
-            version: "1.1",
+            version: "1.2",
             exportedAt: new Date().toISOString(),
             vendorsDB: vendorsDB,
             applicantsDB: applicantsDB,
